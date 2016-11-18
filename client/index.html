@@ -1,0 +1,107 @@
+<!doctype html>
+<html>
+
+<head>
+	<title>Streaming Storyline</title>
+	<link type="text/css" rel="stylesheet" href="css/materialize.min.css" media="screen,projection" />
+	<link type="text/css" rel="stylesheet" href="css/style.css" media="screen,projection" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<style>
+		body,
+		html {
+			font-family: 'Abel', sans-serif;
+			color: #846C63;
+			background-color: #F1F4F6!important;
+		}
+
+		.btn,
+		.btn-large,
+		.btn-small {
+			background-color: #86A8A8!important;
+			color: white !important;
+			margin: 0;
+		}
+
+		[type="radio"]:checked+label:after {
+			border: 2px solid #86A8A8!important;
+			background-color: #86A8A8!important;
+		}
+
+		[type="checkbox"]:checked+label:before {
+			border-right: 2px solid #86A8A8!important;
+			border-bottom: 2px solid #86A8A8!important;
+		}
+
+		green {
+			color: #86A8A8!important;
+		}
+	</style>
+</head>
+
+<body>
+	<div class="navbar-fixed">
+		<nav class="teal">
+			<div class="nav-wrapper container">
+				<!-- logo -->
+				<a class="brand-logo">
+					<!-- <h2> -->
+					Streaming Storyline
+					<!-- </h2> -->
+				</a>
+				<!-- 顶部navbar右侧的按钮     -->
+				<ul class="right hide-on-small-only">
+					<li class="hide-on-med-and-down">
+						<a href="">
+							Jiannan Xiao
+						</a>
+					</li>
+					<li class="hide-on-med-and-down">
+						<a href="">
+							Qian Ren
+						</a>
+					</li>
+					<li class="hide-on-med-and-down">
+						<a href="">
+							Bowei Zhou
+						</a>
+					</li>
+				</ul>
+			</div>
+		</nav>
+	</div>
+	<main class="container" style="width:85%">
+		<!-- storyline -->
+		<div class="row">
+			<div class="col s12">
+				<div class="card-panel">
+					<div style="height:400px;">
+						storyline here
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- minimap -->
+		<div class="row">
+			<div class="col s12">
+				<div class="card-panel">
+					<div style="height:100px;">
+						minimap here
+					</div>
+				</div>
+			</div>
+		</div>
+	</main>
+
+	<script type="text/javascript" src="js/jquery-2.1.3.min.js"></script>
+	<script type="text/javascript" src="js/materialize.min.js"></script>
+
+	<script>
+		$(document).ready(function() {
+			$('.modal-trigger').leanModal();
+			$('.collapsible').collapsible();
+		});
+	</script>
+
+</body>
+
+</html>
