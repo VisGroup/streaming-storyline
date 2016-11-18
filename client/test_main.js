@@ -1,7 +1,7 @@
 var sample_data_generator = function (entity_set, height, time) {
 	var session_count = _.random(2, 5);
 	var entity_list = [];
-	entity_set.each(function (e) {
+	entity_set.forEach(function (e) {
 		entity_list.push(e);
 	});
 	var entity_count = entity_list.length;
@@ -25,10 +25,11 @@ var sample_data_generator = function (entity_set, height, time) {
 		"entities": entity_list,
 		"sessions": sessions
 	};
-}
+};
 
 var storyline = new StreamingStoryline("#streaming-storyline", {
-	"height": 400
+	"height": 400,
+	"width": 1200
 });
 
 var iter_count = 3;
@@ -38,17 +39,17 @@ var test_main = function () {
 	var delay = _.random(100, 200);
 
 	var iteration = function () {
-		console.log("iter");
 		var sessions = sample_data_generator(entity_set, 400, curr_time);
 		// console.log(sessions);
 		storyline.update(sessions);
 		iter_count --;
 		if (iter_count < 0) return;
+		console.log("iter\t" + curr_time);
 
 		curr_time += delay;
-		delay = _.random(1000, 2000);
+		delay = _.random(100, 200);
 		setTimeout(iteration, delay);
-	}
+	};
 	setTimeout(iteration, delay);
 };
 
