@@ -24,3 +24,32 @@
     -webkit-font-feature-settings: 'liga';
     -webkit-font-smoothing: antialiased;
 }
+
+body,
+html {
+    font-family: 'Abel', sans-serif;
+    color: #846C63;
+    background-color: #F1F4F6!important;
+}
+
+.btn,
+.btn-large,
+.btn-small {
+    background-color: #86A8A8!important;
+    color: white !important;
+    margin: 0;
+}
+
+[type="radio"]:checked+label:after {
+    border: 2px solid #86A8A8!important;
+    background-color: #86A8A8!important;
+}
+
+[type="checkbox"]:checked+label:before {
+    border-right: 2px solid #86A8A8!important;
+    border-bottom: 2px solid #86A8A8!important;
+}
+
+green {
+    color: #86A8A8!important;
+}
