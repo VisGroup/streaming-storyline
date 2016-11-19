@@ -1,1 +1,3 @@
-var height = 400;
+var config = {
+	height: 400
+};
