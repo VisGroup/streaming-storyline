@@ -50,8 +50,16 @@ function handle(foo, req, res) {
     }
 }
 
+app.get('/', function(req, res) {
+    handle(webpage, req, res);
+});
+
 app.post('/demo', function(req, res) {
     handle(postDemo, req, res);
+});
+
+app.get('/msg', function(req, res) {
+    handle(getMsg, req, res);
 });
 
 function postDemo(req, res) {
@@ -60,7 +68,7 @@ function postDemo(req, res) {
 
     var cmd = ['demo.exe', 'arg1', 'arg2'].join(' ');
 
-    if (false/*something here*/) {
+    if (false /*something here*/ ) {
         res.send('error');
         return;
     }
@@ -73,4 +81,20 @@ function postDemo(req, res) {
             res.send(stdout);
         }
     });
+}
+
+function getMsg(req, res) {
+    res.writeHead(200, {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive"
+    });
+
+    setInterval(function() {
+        res.write("data: " + Date.now() + "\n\n");
+    }, 1000);
+}
+
+function webpage(req, res) {
+	res.render('StreamingStoryline');
 }
