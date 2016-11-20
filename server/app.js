@@ -7,6 +7,7 @@ var fs = require('fs');
 var bodyParser = require('body-parser');
 var routes = require('./routes/index');
 var exec = require('child_process').exec;
+var spawn = require('child_process').spawn;
 
 var app = express();
 
@@ -90,11 +91,79 @@ function getMsg(req, res) {
         "Connection": "keep-alive"
     });
 
-    setInterval(function() {
-        res.write("data: " + Date.now() + "\n\n");
-    }, 1000);
+    var data_all = parseTxtData('movie_data/StarWars_interaction_sessions.txt');
+
+    var time = 0;
+
+    var child = spawn('gintama');
+    child.stdout.on('data', function(data) {
+        console.log(data.toString());
+		res.write(data.toString() + "\n\n");
+    });
+
+    var timer = setInterval(function() {
+        var str = time + '\t';
+        var len = data_all.events[i].length;
+        for (var j = 0; j < len; j++) {
+            str += JSON.stringify(data_all.sessions[data_all.events[i][j]].members).split(/[\[\]]/)[1];
+            str += '\t';
+        }
+        child.stdin.write(str + '\n');
+
+        time++;
+        if (result.events[time] == undefined) {
+            child.stdin.write('#\n');
+            child.stdin.end();
+            clearInterval(timer);
+        }
+    }, 2000);
 }
 
 function webpage(req, res) {
-	res.render('StreamingStoryline');
+    res.render('StreamingStoryline');
 }
+
+function parseTxtData(filename) {
+    var data = fs.readFileSync(filename).toString().split('\n');
+    var len = data.length;
+    var time_count = parseInt(data[0].split('=')[1]);
+    var names = JSON.parse(data[5].split("'").join('"'));
+    var result = {
+        time_count: time_count,
+        names: names,
+        sessions: [],
+        events: []
+    };
+    for (var i = 7; i < len; i++) {
+        var s = data[i];
+        if (s.indexOf('Id') >= 0) {
+            result.sessions.push({
+                id: parseInt(s.split(':')[1]),
+                start: -1,
+                end: -1,
+                members: null
+            });
+        }
+        if (s.indexOf('Start') >= 0) {
+            result.sessions[result.sessions.length - 1].start = parseInt(s.split(':')[1]);
+        }
+        if (s.indexOf('End') >= 0) {
+            result.sessions[result.sessions.length - 1].end = parseInt(s.split(':')[1]);
+        }
+        if (s.indexOf('Members') >= 0) {
+            result.sessions[result.sessions.length - 1].members = JSON.parse(s.split(':')[1]);
+        }
+    }
+    var len = result.sessions.length;
+    for (var i = 0; i < time_count; i++) {
+        result.events.push([]);
+        for (var j = 0; j < len; j++) {
+            if (i >= result.sessions[j].start && i <= result.sessions[j].end) {
+                result.events[i].push(j);
+            }
+        }
+    }
+    return result;
+}
+
+// console.log(JSON.stringify(parseTxtData('movie_data/StarWars_interaction_sessions.txt')));
