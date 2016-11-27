@@ -1,5 +1,6 @@
 #include "StorylineSession.hpp"
 #include <string>
+#include <sstream>
 using namespace std;
 
 StorylineSession::StorylineSession() {
@@ -11,15 +12,18 @@ StorylineSession::~StorylineSession() {
 }
 
 string StorylineSession::toString() {
-    string res("{");
-    map<int, float>::iterator it = this->positions->begin();
-    for (; it != this.positions->end(); it ++) {
-        res.append(it->first);
-        res.append(":");
-        res.append(it->second);
-        if (it != this.positions->end())
-            res.append(",");
+    stringstream res("{");
+    map<int, double>::iterator it = this->positions->begin();
+    for (; ;) {
+        res << (it->first);
+        res << (": ");
+        res << (it->second);
+		it ++;
+        if (it != this->positions->end())
+            res << (",");
+		else
+			break;
     }
-    res.append("}");
-    return string;
+    res << ("}");
+    return res.str();
 }

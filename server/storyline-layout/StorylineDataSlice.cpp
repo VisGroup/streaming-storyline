@@ -1,5 +1,6 @@
 #include "StorylineDataSlice.hpp"
 #include <string>
+#include <sstream>
 
 using namespace std;
 
@@ -7,16 +8,19 @@ StorylineDataSlice::StorylineDataSlice() {
     this->sessions = new std::vector<StorylineSession*>();
 }
 
-std::string StorylineDataSlice::toString() {
-    std::string result("{time:");
-    result.append(this.sliceTime);
-    result.append(",sessions:[");
-    for (vector<StorylineDataSlice*>::iterator it = this->sessions->begin(); it != this->sessions->end(); it ++) {
-        result.append(it->toString());
+string StorylineDataSlice::toString() {
+    stringstream result("{time:");
+    result << (this->sliceTime);
+    result << (",sessions:[");
+    for (vector<StorylineSession*>::iterator it = this->sessions->begin(); ;) {
+        result << ((*it)->toString());
+		it ++;
         if (it != this->sessions->end()) {
-            result.append(",");
-        }
+            result << (",");
+        } else {
+			break;
+		}
     }
-    result.append("]}");
-    return result;
+    result << ("]}");
+    return result.str();
 }

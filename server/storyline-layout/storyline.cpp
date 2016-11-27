@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <sstream>
 
 #include "StorylineDataSlice.hpp"
 #include "StorylineLayout.hpp"
@@ -40,4 +41,24 @@ int main() {
         cout << result->toString() << endl;
     }
     return 0;
+}
+
+int main1() {
+	map<int, double> m;
+	m.insert(pair<int, double>(0, 1.2));
+	m.insert(pair<int, double>(1, 2.2));
+	stringstream res;
+	res << "{";
+    map<int, double>::iterator it = m.begin();
+    for (; it != m.end(); it ++) {
+        res << (it->first);
+        res << (": ");
+        res << (it->second);
+        if (it != m.end())
+            res << (",");
+    }
+    res << ("}");
+	cout << res.str();
+	getchar();
+	return 0;
 }
