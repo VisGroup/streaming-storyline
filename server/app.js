@@ -91,6 +91,7 @@ function getMsg(req, res) {
         "Cache-Control": "no-cache",
         "Connection": "keep-alive"
     });
+    console.log(23333);
 
     var data_all = parseTxtData('movie_data/StarWars_interaction_sessions.txt');
 
@@ -99,7 +100,7 @@ function getMsg(req, res) {
     var child = spawn('storyline-layout/gintama');
     child.stdout.on('data', function(data) {
         console.log(data.toString());
-		res.write(data.toString() + "\n\n");
+        res.write("data:" + data.toString() + "\n\n");
     });
 
     var timer = setInterval(function() {
@@ -115,6 +116,8 @@ function getMsg(req, res) {
         if (data_all.events[time] == undefined) {
             child.stdin.write('#\n');
             child.stdin.end();
+            res.write("data:over\n\n");
+            console.log("finish");
             clearInterval(timer);
         }
     }, 100);
