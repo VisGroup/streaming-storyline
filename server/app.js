@@ -85,6 +85,7 @@ function postDemo(req, res) {
 }
 
 function getMsg(req, res) {
+    console.log("get msg");
     res.writeHead(200, {
         "Content-Type": "text/event-stream",
         "Cache-Control": "no-cache",
@@ -95,7 +96,7 @@ function getMsg(req, res) {
 
     var time = 0;
 
-    var child = spawn('gintama');
+    var child = spawn('storyline-layout/gintama');
     child.stdout.on('data', function(data) {
         console.log(data.toString());
 		res.write(data.toString() + "\n\n");
@@ -103,20 +104,20 @@ function getMsg(req, res) {
 
     var timer = setInterval(function() {
         var str = time + '\t';
-        var len = data_all.events[i].length;
+        var len = data_all.events[time].length;
         for (var j = 0; j < len; j++) {
-            str += JSON.stringify(data_all.sessions[data_all.events[i][j]].members).split(/[\[\]]/)[1];
+            str += JSON.stringify(data_all.sessions[data_all.events[time][j]].members).split(/[\[\]]/)[1];
             str += '\t';
         }
         child.stdin.write(str + '\n');
-
+        console.log(str);
         time++;
-        if (result.events[time] == undefined) {
+        if (data_all.events[time] == undefined) {
             child.stdin.write('#\n');
             child.stdin.end();
             clearInterval(timer);
         }
-    }, 2000);
+    }, 100);
 }
 
 function webpage(req, res) {

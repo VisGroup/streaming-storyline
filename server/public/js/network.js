@@ -16,8 +16,11 @@ var gintama = function(func) {// receive a data
     send('GET', '/gintama', {}, func);
 }
 
-var es = new EventSource('/msg');
 
-es.onmessage = function (e) {
-    console.log(e.data);
+var startFuck = function() {
+    var es = new EventSource('/msg');
+
+    es.onmessage = function (e) {
+        console.log(e.data);
+    }
 }

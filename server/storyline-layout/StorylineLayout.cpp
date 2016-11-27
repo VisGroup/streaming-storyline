@@ -7,6 +7,7 @@
 //
 
 #include "StorylineLayout.hpp"
+#include "StorylineDataSlice.hpp"
 
 StorylineLayout::StorylineLayout() {
     // TODO
