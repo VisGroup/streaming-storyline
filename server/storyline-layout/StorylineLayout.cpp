@@ -17,7 +17,7 @@ StorylineLayout::~StorylineLayout() {
     
 }
 
-StorylineDataSlice StorylineLayout::update(StorylineDataSlice slice) {
+StorylineDataSlice * StorylineLayout::update(StorylineDataSlice * slice) {
     this->ordering();
     this->aligning();
     return this->compressing();
@@ -31,7 +31,7 @@ void StorylineLayout::aligning() {
     // TODO
 }
 
-StorylineDataSlice StorylineLayout::compressing() {
+StorylineDataSlice * StorylineLayout::compressing() {
     // TODO: xiaojiannan
     return new StorylineDataSlice();
 }

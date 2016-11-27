@@ -10,15 +10,16 @@
 #define StorylineSession_h
 
 #include <map>
+using namespace std;
 
 class StorylineSession
 {
 public:
     StorylineSession();
     ~StorylineSession();
-    std::map<std::string, double> positions;
-    std::string identifier;
+    map<int, double> * positions; // entity-name , y-pos
+//    std::string identifier;
+    string toString();
 };
-
 
 #endif /* StorylineSession_h */

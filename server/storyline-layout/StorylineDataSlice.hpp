@@ -9,11 +9,17 @@
 #ifndef StorylineDataSlice_hpp
 #define StorylineDataSlice_hpp
 
-#include<vector>
+#include <vector>
+#include <string>
+
+#include "StorylineSession.hpp"
 
 class StorylineDataSlice {
-    std::vector<StorylineSession> session;
+public:
+    StorylineDataSlice();
+    std::vector<StorylineSession*> * sessions;
     int sliceTime;
+    std::string toString();
 };
 
 

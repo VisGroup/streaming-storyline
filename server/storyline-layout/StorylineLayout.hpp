@@ -10,18 +10,19 @@
 #define StorylineLayout_hpp
 
 #include <stdio.h>
-#include <StorylineSession.hpp>
+#include "StorylineSession.hpp"
+#include "StorylineDataSlice.hpp"
 
 class StorylineLayout {
 public:
     StorylineLayout();
     ~StorylineLayout();
-    
-    StorylineDataSlice update(StorylineDataSlice slice);
+public:
+    StorylineDataSlice * update(StorylineDataSlice * slice);
 private:
     void ordering();
     void aligning();
-    void compressing();
+    StorylineDataSlice * compressing();
 };
 
 #endif /* StorylineLayout_hpp */
