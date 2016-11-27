@@ -1,8 +1,8 @@
-//
+﻿//
 //  StorylineLayout.cpp
 //  Streaming-Storyline
 //
-//  Created by 肖剑楠 on 2016/11/20.
+//  Created by derekxiao on 2016/11/20.
 //
 //
 
@@ -17,7 +17,7 @@ StorylineLayout::~StorylineLayout() {
     
 }
 
-StorylineDataSlice StorylineLayout::update(StorylineDataSlice slice) {
+StorylineDataSlice * StorylineLayout::update(StorylineDataSlice * slice) {
     this->ordering();
     this->aligning();
     return this->compressing();
@@ -31,7 +31,7 @@ void StorylineLayout::aligning() {
     // TODO
 }
 
-StorylineDataSlice StorylineLayout::compressing() {
+StorylineDataSlice * StorylineLayout::compressing() {
     // TODO: xiaojiannan
     return new StorylineDataSlice();
 }

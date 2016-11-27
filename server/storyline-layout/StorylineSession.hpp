@@ -1,8 +1,8 @@
-//
+﻿//
 //  StorylineSession.hpp
 //  Streaming-Storyline
 //
-//  Created by 肖剑楠 on 2016/11/20.
+//  Created by derekxiao on 2016/11/20.
 //
 //
 
@@ -10,15 +10,16 @@
 #define StorylineSession_h
 
 #include <map>
+using namespace std;
 
 class StorylineSession
 {
 public:
     StorylineSession();
     ~StorylineSession();
-    std::map<std::string, double> positions;
-    std::string identifier;
+    map<int, double> * positions; // entity-name , y-pos
+//    std::string identifier;
+    string toString();
 };
-
 
 #endif /* StorylineSession_h */

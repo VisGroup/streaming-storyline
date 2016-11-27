@@ -1,8 +1,26 @@
-#include <StorylineDataSlice.hpp>
+#include "StorylineDataSlice.hpp"
 #include <string>
+#include <sstream>
 
-std::string StorylineDataSlice::toString() {
-    std::string result;
-    // TODO
-    return result;
+using namespace std;
+
+StorylineDataSlice::StorylineDataSlice() {
+    this->sessions = new std::vector<StorylineSession*>();
+}
+
+string StorylineDataSlice::toString() {
+    stringstream result("{time:");
+    result << (this->sliceTime);
+    result << (",sessions:[");
+    for (vector<StorylineSession*>::iterator it = this->sessions->begin(); ;) {
+        result << ((*it)->toString());
+		it ++;
+        if (it != this->sessions->end()) {
+            result << (",");
+        } else {
+			break;
+		}
+    }
+    result << ("]}");
+    return result.str();
 }
