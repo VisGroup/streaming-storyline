@@ -23,6 +23,9 @@ private:
     void ordering();
     void aligning();
     StorylineDataSlice * compressing();
+	StorylineDataSlice * prev;
+	StorylineDataSlice * curr;
 };
 
 #endif /* StorylineLayout_hpp */
+
