@@ -30,19 +30,20 @@ StorylineDataSlice * parseData(string line) {
 
 int main() {
     StorylineLayout * sl = new StorylineLayout();
-    string line("0	4	6,3	1,5	");
+    /*string line("0	4	6,3	1,5	");
 	StorylineDataSlice * result = sl->update(parseData(line));
-    cout << result->toString() << endl;
-//    while (true) {
-//        getline(cin, line);
-//        if (line == "#") {
-//            break;
-//        }
-//        // parse
-//        StorylineDataSlice * result = sl->update(parseData(line));
-////        cout << "fuck + random" << endl;
-//        cout << result->toString() << endl;
-//    }
+    cout << result->toString() << endl;*/
+	string line;
+    while (true) {
+        getline(cin, line);
+        if (line == "#") {
+            break;
+        }
+        // parse
+        StorylineDataSlice * result = sl->update(parseData(line));
+//        cout << "fuck + random" << endl;
+        cout << result->toString() << endl;
+    }
     return 0;
 }
 
