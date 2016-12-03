@@ -24,39 +24,59 @@
     -webkit-font-feature-settings: 'liga';
     -webkit-font-smoothing: antialiased;
 }
-
-body,
-html {
+body, html {
     font-family: 'Abel', sans-serif;
     color: #846C63;
     background-color: #F1F4F6!important;
 }
-
-.btn,
-.btn-large,
-.btn-small {
+.btn, .btn-large, .btn-small {
     background-color: #86A8A8!important;
     color: white !important;
     margin: 0;
 }
-
 [type="radio"]:checked+label:after {
     border: 2px solid #86A8A8!important;
     background-color: #86A8A8!important;
 }
-
 [type="checkbox"]:checked+label:before {
     border-right: 2px solid #86A8A8!important;
     border-bottom: 2px solid #86A8A8!important;
 }
-
 green {
     color: #86A8A8!important;
 }
-
-#mm_area{
+#mm_area {
     margin: 0px auto 0 auto;
     border-top: 2px solid #555;
     border-bottom: 2px solid #555;
-    height:100px;
+    height: 100px;
+}
+.mm_select_box {
+    opacity: 0;
+    height: 100%;
+    position: relative;
+    /*display: none;*/
+    left: 92px;
+    width: 291px;
+}
+.mm_mask {
+    opacity: 0.1;
+    height: 100%;
+    position: relative;
+    /*display: none;*/
+    width: 100%;
+    background-image: url(../img/tmp.png);
+    top: -200%;
+}
+.mm_select_box.mm_orange {
+    border-left: 3px solid salmon;
+    border-right: 3px solid salmon;
+    background-color: lightsalmon;
+    top: -100%;
+}
+.mm_select_box.mm_gray {
+    border-left: 3px solid gray;
+    border-right: 3px solid gray;
+    background-color: lightgray;
+    top: 0%;
 }
