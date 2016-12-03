@@ -27,6 +27,7 @@ var start_loading = function(storyline) {
         }
         var slice;
         eval("slice=" + e.data);
+        console.log(slice.time);
         storyline.update(slice);
     }
 };

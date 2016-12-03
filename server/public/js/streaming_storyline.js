@@ -53,6 +53,9 @@ StreamingStoryline.prototype.update = function(new_data) {
     var time_shrink_ratio = this.time_shrink_ratio;
     var _data = this.storyline_data;
     var time = new_data.time;
+    if (DEBUG_MODE) {
+        time *= 200;
+    }
     console.log(time);
     _data.range[1] = _.max([_data.range[1], time]);
     for (var i = 0; i < new_data.entities.length; i++) {
@@ -106,7 +109,7 @@ StreamingStoryline.prototype.update = function(new_data) {
 
 StreamingStoryline.prototype._map2screen = function(p) {
     return {
-        "time": p.time * 100,
+        "time": p.time,
         "height": p.height
     };
 };

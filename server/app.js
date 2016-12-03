@@ -86,7 +86,7 @@ function postDemo(req, res) {
 
 function getMsg(req, res) {
     console.log("get msg");
-    res.writeHead(1000, {
+    res.writeHead(100, {
         "Content-Type": "text/event-stream",
         "Cache-Control": "no-cache",
         "Connection": "keep-alive"
@@ -120,7 +120,7 @@ function getMsg(req, res) {
             console.log("finish");
             clearInterval(timer);
         }
-    }, 100);
+    }, 1000);
 }
 
 function webpage(req, res) {
