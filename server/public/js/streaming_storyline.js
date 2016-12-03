@@ -35,12 +35,29 @@ function StreamingStoryline(container, config) {
 	]
 }
 */
+
+StreamingStoryline.prototype._get_entities = function (new_data) {
+    var entities = d3.set();
+    for (var i = 0; i < new_data.sessions.length; i ++) {
+        var s = new_data.sessions[i];
+        for (var k in s) {
+            entities.add(k);
+        }
+    }
+    return _.keys(entities._);
+};
+
 StreamingStoryline.prototype.update = function(new_data) {
+    new_data.entities = this._get_entities(new_data);
     var that = this;
     var time_shrink_ratio = this.time_shrink_ratio;
     var _data = this.storyline_data;
     var time = new_data.time;
-    _data.range[1] = _.max(_data.range[1], time);
+    if (DEBUG_MODE) {
+        time *= 200;
+    }
+    console.log(time);
+    _data.range[1] = _.max([_data.range[1], time]);
     for (var i = 0; i < new_data.entities.length; i++) {
         var entity = new_data.entities[i];
         if (!_.has(_data.entities, entity)) {
@@ -52,6 +69,9 @@ StreamingStoryline.prototype.update = function(new_data) {
     for (var i = 0; i < new_data.sessions.length; i++) {
         var session = new_data.sessions[i];
         _.each(session, function(v, k) {
+            if (DEBUG_MODE) {
+                v = Math.random() * config.height;
+            }
             // v = v * time_shrink_ratio;
             var history_points = _data.entities[k];
             if (history_points.length == 0) {
