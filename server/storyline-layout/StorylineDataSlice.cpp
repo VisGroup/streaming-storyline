@@ -9,7 +9,8 @@ StorylineDataSlice::StorylineDataSlice() {
 }
 
 string StorylineDataSlice::toString() {
-    stringstream result("{time:");
+    stringstream result;
+	result << ("{time:");
     result << (this->sliceTime);
     result << (",sessions:[");
     for (vector<StorylineSession*>::iterator it = this->sessions->begin(); ;) {

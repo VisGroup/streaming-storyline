@@ -12,7 +12,8 @@ StorylineSession::~StorylineSession() {
 }
 
 string StorylineSession::toString() {
-    stringstream res("{");
+    stringstream res;
+	res << ("{");
     map<int, double>::iterator it = this->positions->begin();
     for (; ;) {
         res << (it->first);

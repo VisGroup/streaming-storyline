@@ -21,6 +21,7 @@ StorylineDataSlice * parseData(string line) {
         for (vector<string>::iterator _iter = members.begin(); _iter != members.end(); _iter ++) {
             session->positions->insert(pair<int, double>(stoi(*_iter), .0));
         }
+		if (session->positions->size() == 0) continue;
         slice->sessions->push_back(session);
     }
 
@@ -29,7 +30,10 @@ StorylineDataSlice * parseData(string line) {
 
 int main() {
     StorylineLayout * sl = new StorylineLayout();
-    string line;
+    /*string line("0	4	6,3	1,5	");
+	StorylineDataSlice * result = sl->update(parseData(line));
+    cout << result->toString() << endl;*/
+	string line;
     while (true) {
         getline(cin, line);
         if (line == "#") {
