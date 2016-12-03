@@ -10,20 +10,23 @@ var send = function(method, url, data, func) {
         data: data,
         success: func
     });
-}
+};
 
 var gintama = function(func) {// receive a data
     send('GET', '/gintama', {}, func);
-}
+};
 
 var es;
-var startFuck = function() {
+var start_loading = function(storyline) {
     es = new EventSource('/msg');
 
     es.onmessage = function (e) {
-        console.log(e.data);
         if (e.data == "over") {
             es.close();
+            return;
         }
+        var slice;
+        eval("slice=" + e.data);
+        storyline.update(slice);
     }
-}
+};

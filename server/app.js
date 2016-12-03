@@ -86,7 +86,7 @@ function postDemo(req, res) {
 
 function getMsg(req, res) {
     console.log("get msg");
-    res.writeHead(200, {
+    res.writeHead(1000, {
         "Content-Type": "text/event-stream",
         "Cache-Control": "no-cache",
         "Connection": "keep-alive"
