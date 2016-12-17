@@ -80,3 +80,6 @@ green {
     background-color: lightgray;
     top: 0%;
 }
+path.storyline {
+    stroke-width: 3.5px;
+}
