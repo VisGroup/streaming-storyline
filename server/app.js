@@ -8,6 +8,7 @@ var bodyParser = require('body-parser');
 var routes = require('./routes/index');
 var exec = require('child_process').exec;
 var spawn = require('child_process').spawn;
+var platform = os.platform();
 
 var app = express();
 
@@ -97,7 +98,8 @@ function getMsg(req, res) {
 
     var time = 0;
 
-    var child = spawn('storyline-layout/gintama');
+    var child_executable = platform == "win32" ? "StreamingStoryline.exe" : "gintama";
+    var child = spawn('storyline-layout/' + child_executable);
     child.stdout.on('data', function(data) {
         console.log(data.toString());
         res.write("data:" + data.toString() + "\n\n");

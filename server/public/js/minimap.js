@@ -4,12 +4,15 @@ var first_click;
 var width_graybox = 150;
 var width_orangebox = 150;
 
-$('.mm_mask').click(mm_click_event);
-$('.mm_mask').mousemove(mm_move_event);
-$('.mm_mask').mouseleave(mm_leave_event);
-$('.mm_mask').mousedown(mm_down_event);
-$('.mm_mask').mouseup(mm_up_event);
-$('.mm_mask')[0].onmousewheel = mm_scroll_event;
+var masks = $('.mm_mask');
+masks.click(mm_click_event);
+masks.mousemove(mm_move_event);
+masks.mouseleave(mm_leave_event);
+masks.mousedown(mm_down_event);
+masks.mouseup(mm_up_event);
+masks[0].onmousewheel = mm_scroll_event;
+var minimap_width = masks.width();
+var minimap_height = masks.height();
 
 function drawSelectBox(selector, position, width) {
     var left = position - width / 2;
@@ -42,12 +45,14 @@ function mm_up_event(e) {
 	width_orangebox = width_graybox;
 	drawSelectBox('.mm_orange', offset, width_orangebox);
 	// hideSelectBox('.mm_gray');
+	console.log("up", offset, width_orangebox);
+	update_storyline_view(offset, width_orangebox);
 }
 
 function mm_scroll_event(e) {
     var offset = e.offsetX;
     // console.log(e.wheelDeltaY);
-    var delta = -e.wheelDeltaY / 120;
+    var delta = -e.wheelDeltaY / 40;
     width_graybox += delta;
 	width_graybox = Math.max(80, width_graybox);
     width_graybox = Math.min(480, width_graybox);
@@ -56,7 +61,10 @@ function mm_scroll_event(e) {
 	} else {
 		width_orangebox = width_graybox;
 		drawSelectBox('.mm_orange', offset, width_orangebox);
+		console.log("scroll", offset, width_orangebox);
+		update_storyline_view(offset, width_orangebox);
 	}
+
     return false;
 }
 
@@ -70,8 +78,14 @@ function mm_move_event(e) {
 	if (!select_status) {
 		drawSelectBox('.mm_gray', offset, width_graybox);
 	} else {
+		console.log("move", offset, width_orangebox);
+		update_storyline_view(offset, width_orangebox);
 		drawSelectBox('.mm_orange', offset, width_orangebox);
 	}
+}
+
+function update_storyline_view (center, width, speed) {
+	storyline.scrollTo((center - width / 2) / minimap_width, (center + width / 2) / minimap_width, 1);
 }
 
 function mm_click_event(e) {

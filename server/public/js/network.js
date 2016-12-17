@@ -21,14 +21,14 @@ var start_loading = function(storyline) {
     es = new EventSource('/msg');
 
     es.onmessage = function (e) {
-        console.log(e);
+        //console.log(e);
         if (e.data == "over") {
             es.close();
             return;
         }
         var slice;
         eval("slice=" + e.data);
-        console.log(slice.time);
+        //console.log(slice.time);
         storyline.update(slice);
     }
 };

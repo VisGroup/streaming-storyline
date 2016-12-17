@@ -4,8 +4,8 @@
 var storyline;
 var init = function () {
     storyline = new StreamingStoryline("#streaming-storyline", {
-        "height": 400,
-        "width": 1200
+        "svg_height": 400,
+        "svg_width": 1200
     });
 };
 
