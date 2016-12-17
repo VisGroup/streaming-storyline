@@ -45,7 +45,7 @@ function mm_up_event(e) {
 	width_orangebox = width_graybox;
 	drawSelectBox('.mm_orange', offset, width_orangebox);
 	// hideSelectBox('.mm_gray');
-	console.log("up", offset, width_orangebox);
+	//console.log("up", offset, width_orangebox);
 	update_storyline_view(offset, width_orangebox);
 }
 
@@ -61,7 +61,7 @@ function mm_scroll_event(e) {
 	} else {
 		width_orangebox = width_graybox;
 		drawSelectBox('.mm_orange', offset, width_orangebox);
-		console.log("scroll", offset, width_orangebox);
+		//console.log("scroll", offset, width_orangebox);
 		update_storyline_view(offset, width_orangebox);
 	}
 
@@ -75,17 +75,21 @@ function mm_leave_event() {
 
 function mm_move_event(e) {
     var offset = e.offsetX;
+	//if (offset < width_graybox / 2 || offset + width_graybox / 2 > minimap_width) {
+	//	return;
+	//}
 	if (!select_status) {
 		drawSelectBox('.mm_gray', offset, width_graybox);
 	} else {
-		console.log("move", offset, width_orangebox);
+		//console.log("move", offset, width_orangebox);
 		update_storyline_view(offset, width_orangebox);
 		drawSelectBox('.mm_orange', offset, width_orangebox);
 	}
 }
 
-function update_storyline_view (center, width, speed) {
-	storyline.scrollTo((center - width / 2) / minimap_width, (center + width / 2) / minimap_width, 1);
+function update_storyline_view (center, width_orangebox, speed) {
+	var actual_minimap_width = minimap_width - width_orangebox;
+	storyline.scrollTo((center - width_orangebox / 2) / actual_minimap_width, (center + width_orangebox / 2) / actual_minimap_width, 1, select_status);
 }
 
 function mm_click_event(e) {

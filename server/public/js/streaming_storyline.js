@@ -2,18 +2,21 @@
 
 function StreamingStoryline(container, config) {
     var that = this;
+
     that.time_shrink_ratio = 1;
-    that.timeslice_space_min = 200;
+    that.timeslice_space_min = 100;
     that.realtime2screentime = {};
     that.lastest_time = - that.timeslice_space_min - 1;
-    that.svg_width = config.svg_width;
+    that.svg_width = $(container).width();
     that.svg_height = config.svg_height;
     //that.screen_time_range = [0, 0];
+    that.has_stoped = false;
 
     that.svg = d3.select(container).append("svg:svg")
         .attr("id", "storyline")
         .attr("height", that.svg_height)
         .attr("width", that.svg_width)
+        .attr("preserveAspectRatio", "none")
         .attr("viewBox", "0 0 " + that.svg_width + " " + that.svg_height);
 
     // that.entity_set = new d3.set();
@@ -54,8 +57,11 @@ StreamingStoryline.prototype._get_entities = function (new_data) {
 };
 
 StreamingStoryline.prototype.update = function(new_data) {
-    new_data.entities = this._get_entities(new_data);
     var that = this;
+    if (that.has_stoped) {
+        return;
+    }
+    new_data.entities = this._get_entities(new_data);
     var time_shrink_ratio = this.time_shrink_ratio;
     var _data = this.storyline_data;
 
@@ -74,7 +80,7 @@ StreamingStoryline.prototype.update = function(new_data) {
     if (time - that.lastest_time <= that.timeslice_space_min) {
         var screen_time = that.lastest_time + that.timeslice_space_min;
         that.realtime2screentime[time] = screen_time;
-        console.log(that.lastest_time, time, screen_time);
+        //console.log(that.lastest_time, time, screen_time);
         time = screen_time;
     }
     that.lastest_time = time;
@@ -92,12 +98,12 @@ StreamingStoryline.prototype.update = function(new_data) {
     for (var i = 0; i < new_data.sessions.length; i++) {
         var session = new_data.sessions[i];
         _.each(session, function(v, k) {
-            if (DEBUG_MODE) {
-                v = Math.random() * that.svg_height;
-            }
             // v = v * time_shrink_ratio;
             var history_points = _data.entities[k];
             if (history_points.length == 0) {
+                if (DEBUG_MODE) {
+                    v = Math.random() * that.svg_height;
+                }
                 // the entity is newly added
                 history_points.push({
                     "time": time,
@@ -106,6 +112,13 @@ StreamingStoryline.prototype.update = function(new_data) {
                 });
             } else {
                 var prev_point = history_points.pop();
+                if (DEBUG_MODE) {
+                    if (Math.random() < 0.65) {
+                        v = prev_point.height;
+                    } else {
+                        v = Math.random() * that.svg_height;
+                    }
+                }
                 if (prev_point.height == v) {
                     if (prev_point.type == "anchor") {
                         history_points.push(prev_point);
@@ -177,22 +190,42 @@ StreamingStoryline.prototype._draw = function() {
         .attr("id", function(entity_name) {
             return entity_name;
         })
-        .attr("class", "storyline")
+        .attr("class", "storyline");
         // .classed("storyline")
     ;
     that.storylines.exit().remove();
     that.storylines
-        .attr("d", function(entity_name) {
+        .attr("d", function (entity_name) {
             var hps = that.storyline_data.entities[entity_name];
             return that._draw_entity.call(that, hps);
+        })
+        .attr("id", function (entity_name) {
+            return "entity-" + entity_name;
+        })
+        .style("stroke", function (entity_name) {
+            return that.color(entity_name);
+        })
+        .on("mouseover", function (d) {
+            console.log("mouseover");
+            var e = d3.select("#entity-" + d);
+            //e.style("filter", "url(#filter1)");
+            e.style("stroke-width", "5px");
+        })
+        .on("mouseout", function (d) {
+            console.log("mouseout");
+            var e = d3.select("#entity-" + d);
+            //e.style("filter", "");
+            e.style("stroke-width", "3.5px");
         });
 };
 
-StreamingStoryline.prototype.resize = function(new_ratio) {
-    // TODO
+// for Debug use
+StreamingStoryline.prototype.stop_loading = function () {
+    var that = this;
+    that.has_stoped = true;
 };
 
-StreamingStoryline.prototype.scrollTo = function (start, end, speed) {
+StreamingStoryline.prototype.scrollTo = function (start, end, speed, select_status) {
     var that = this;
     var data_time_range = that.storyline_data.range;
     var data_time_length = data_time_range[1] - data_time_range[0];
@@ -202,7 +235,8 @@ StreamingStoryline.prototype.scrollTo = function (start, end, speed) {
     var view_start = data_time_length * start + data_time_range[0];
     var view_end = data_time_length * end + data_time_range[0];
     that.svg.transition()
-        .duration(1000)
+        .duration(select_status ? 10 : 1000)
         .attr("viewBox", view_start + " 0 " + (view_end - view_start) + " " + that.svg_height);
-    console.log(view_end - view_start);
+
+    //console.log(view_end - view_start);
 };
