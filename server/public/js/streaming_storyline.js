@@ -160,12 +160,21 @@ StreamingStoryline.prototype.update = function(new_data) {
     // create new entity lines that never ever exists
     for (var entity in new_data.entities) {
         // var entity = new_data.entities[i];
-        console.log(entity);
+        //console.log(entity);
         if (!_.has(_data.entities, entity)) {
             _data.entities[entity] = [];
             // that.entity_set.add(entity);
         }
     }
+
+    //if (DEBUG_MODE) {
+    //    var lengths = [];
+    //    for (var entity in _data.entities) {
+    //        lengths.push(_data.entities[entity].length);
+    //    }
+    //    console.log("before", lengths.join(" "));
+    //}
+
     // extend old entity lines not mentioned in new time slice
     for (var entity in _data.entities) {
         var history_points = _data.entities[entity];
@@ -180,11 +189,34 @@ StreamingStoryline.prototype.update = function(new_data) {
         }
     }
 
+    //if (DEBUG_MODE) {
+    //    var lengths = [];
+    //    for (var entity in _data.entities) {
+    //        lengths.push(_data.entities[entity].length);
+    //    }
+    //    console.log("middle", lengths.join(" "));
+    //    console.log(_.keys(_data.entities));
+    //    console.log(new_data.entities);
+    //}
+
+    var stats = {};
+    if (DEBUG_MODE) {
+        for (var entity in new_data.entities) {
+            stats[entity] = 0;
+        }
+    }
+
     // incorporate new data into old data series
+    console.log(new_data);
     for (var i = 0; i < new_data.sessions.length; i++) {
         var session = new_data.sessions[i];
         _.each(session, function(v, k) {
             // v = v * time_shrink_ratio;
+            if (DEBUG_MODE) {
+                if (stats[k]) {
+                    return;
+                }
+            }
             var history_points = _data.entities[k];
             if (history_points.length == 0) {
                 if (DEBUG_MODE) {
@@ -214,8 +246,20 @@ StreamingStoryline.prototype.update = function(new_data) {
                 time_slice[k] = nn;
                 history_points.push(nn);
             }
+            stats[k] ++;
         });
     }
+
+    //if (DEBUG_MODE) {
+    //    console.log(stats);
+    //}
+    //if (DEBUG_MODE) {
+    //    var lengths = [];
+    //    for (var entity in _data.entities) {
+    //        lengths.push(_data.entities[entity].length);
+    //    }
+    //    console.log("after", lengths.join(" "));
+    //}
     that.storyline_data.time_slices[time] = time_slice;
     this._draw();
 };
@@ -241,11 +285,13 @@ StreamingStoryline.prototype._draw_entity = function(history_points) {
     if (point_count == 1) {
         return d + "L" + (start.time + control_point_shift) + "," + start.height;
     }
-    d = "";
+    //d = "M" + (prev.time) + "," + (prev.height);
+
     for (var i = 1; i < point_count; i++) {
         var prev = history_points[i - 1];
         var p = history_points[i];
-        var ap = "M" + (prev.time) + "," + (prev.height) +
+        var ap =
+            //"M" + (prev.time) + "," + (prev.height) +
             "C" + (prev.time + control_point_shift) + "," + (prev.height) + "," +
             (p.time - control_point_shift) + "," + (p.height) + "," +
             (p.time) + "," + (p.height);
@@ -273,15 +319,15 @@ StreamingStoryline.prototype._draw = function() {
     that.storylines.exit().remove();
 
     that.storylines
-        .attr("d", function (entity_name) {
-            var hps = that.storyline_data.entities[entity_name];
-            return that._draw_entity.call(that, hps);
-        })
         .attr("id", function (entity_name) {
             return "entity-" + entity_name;
         })
         .transition()
         .duration(500)
+        .attr("d", function (entity_name) {
+            var hps = that.storyline_data.entities[entity_name];
+            return that._draw_entity.call(that, hps);
+        })
         .style("stroke", function (entity_name) {
             return that.color(entity_name);
         });

@@ -115,6 +115,12 @@ function getMsg(req, res) {
         child.stdin.write(str + '\n');
         console.log(str);
         time++;
+
+        //if (time > 5) {
+        //    clearInterval(timer);
+        //    return;
+        //}
+
         if (data_all.events[time] == undefined) {
             child.stdin.write('#\n');
             child.stdin.end();
