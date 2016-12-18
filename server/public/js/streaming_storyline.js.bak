@@ -6,7 +6,7 @@ function StreamingStoryline(container, config) {
     that.time_shrink_ratio = 1;
     that.timeslice_space_min = 100;
     that.realtime2screentime = {};
-    that.latest_time = - that.timeslice_space_min - 1;
+    that.lastest_time = - that.timeslice_space_min - 1;
     that.svg_width = $(container).width();
     that.svg_height = config.svg_height;
     //that.screen_time_range = [0, 0];
@@ -20,13 +20,15 @@ function StreamingStoryline(container, config) {
         .attr("preserveAspectRatio", "none")
         .attr("viewBox", "0 0 " + that.svg_width + " " + that.svg_height);
 
+    // that.entity_set = new d3.set();
     that.storyline_data = {
         "entities": {}, // name -> list of {time, height, type<anchor, extend>}
         "sessions": [],
-        "range": [Math.MAX_VALUE, Math.MIN_VALUE],
-        "time_slices": {}, // time -> list of points belong to the same time point
-        "straighten_shifts": {}
+        "range": [Math.MAX_VALUE, Math.MIN_VALUE]
     };
+    // that.color = function (n) {
+    // 	return d3.schemeCategory20c[hashcode(n) % 20];
+    // };
 
     that.color = d3.scale.category20();
     that.storylines = that.svg.append("svg:g").selectAll("path.storyline");
@@ -44,60 +46,50 @@ function StreamingStoryline(container, config) {
 }
 */
 
-StreamingStoryline.prototype._straighten_shift = function () {
-    var that = this;
-    var straighten_shifts = that.storyline_data.straighten_shifts;
-    for (var time in straighten_shifts) {
-        var shift = straighten_shifts[time];
-        var time_slice = that.storyline_data.time_slices[time];
-        for (var entity in time_slice) {
-            time_slice[entity].height += shift;
+function clickcancel() {
+    var event = d3.dispatch('click', 'dblclick');
+    function cc(selection) {
+        var down,
+            tolerance = 5,
+            last,
+            wait = null;
+        // euclidean distance
+        function dist(a, b) {
+            return Math.sqrt(Math.pow(a[0] - b[0], 2), Math.pow(a[1] - b[1], 2));
         }
-        // clear straighten shifts
-        straighten_shifts[time] = 0;
-    }
-};
+        selection.on('mousedown', function() {
+            down = d3.mouse(document.body);
+            last = +new Date();
+        });
+        selection.on('mouseup', function() {
+            if (dist(down, d3.mouse(document.body)) > tolerance) {
+                return;
+            } else {
+                if (wait) {
+                    window.clearTimeout(wait);
+                    wait = null;
+                    event.dblclick(d3.event);
+                } else {
+                    wait = window.setTimeout((function(e) {
+                        return function() {
+                            event.click(e);
+                            wait = null;
+                        };
+                    })(d3.event), 300);
+                }
+            }
+        });
+    };
+    return d3.rebind(cc, event, 'on');
+}
 
-StreamingStoryline.prototype._straighten_unshift = function () {
+StreamingStoryline.prototype.straighten = function (d) {
     var that = this;
-    var straighten_shifts = that.storyline_data.straighten_shifts;
-    for (var time in straighten_shifts) {
-        var shift = straighten_shifts[time];
-        var time_slice = that.storyline_data.time_slices[time];
-        for (var entity in time_slice) {
-            time_slice[entity].height -= shift;
-        }
-        // clear straighten shifts
-        straighten_shifts[time] = 0;
-    }
-};
-
-StreamingStoryline.prototype.straighten_by = function (d) {
-    var that = this;
-
-    if (that.straighten != null) {
-        that._straighten_unshift();
+    if (that.straighten == d) {
         that.straighten = null;
-    }
-
-    if (that.straighten != d) {
-        var straighten_shifts = that.storyline_data.straighten_shifts;
-
-        // get average height of entity d
-        var history_points = that.storyline_data.entities[d];
-        var sum = 0;
-        for (var i = 0; i < history_points.length; i ++) {
-            sum += history_points[i].height;
-        }
-        var average_height = sum / history_points.length;
-        for (var i = 0; i < history_points.length; i ++) {
-            var time = history_points[i].time;
-            straighten_shifts[time] = average_height - history_points[i].height;
-        }
-        that._straighten_shift();
+    } else {
         that.straighten = d;
     }
-
     that._draw();
 };
 
@@ -109,7 +101,7 @@ StreamingStoryline.prototype._get_entities = function (new_data) {
             entities.add(k);
         }
     }
-    return entities._;
+    return _.keys(entities._);
 };
 
 StreamingStoryline.prototype.update = function(new_data) {
@@ -117,6 +109,10 @@ StreamingStoryline.prototype.update = function(new_data) {
     if (that.has_stoped) {
         return;
     }
+    new_data.entities = this._get_entities(new_data);
+    var time_shrink_ratio = this.time_shrink_ratio;
+    var _data = this.storyline_data;
+
     // convert time to displayable format
     var time = new_data.time;
 
@@ -124,63 +120,29 @@ StreamingStoryline.prototype.update = function(new_data) {
     if (that.realtime2screentime[time]) {
         return;
     }
+    if (DEBUG_MODE) {
+        //time *= 200;
+    }
 
     // make sure displayed time slices have at least timeslice_space_min
-    if (time - that.latest_time <= that.timeslice_space_min) {
-        var screen_time = that.latest_time + that.timeslice_space_min;
+    if (time - that.lastest_time <= that.timeslice_space_min) {
+        var screen_time = that.lastest_time + that.timeslice_space_min;
         that.realtime2screentime[time] = screen_time;
-        //console.log(that.latest_time, time, screen_time);
+        //console.log(that.lastest_time, time, screen_time);
         time = screen_time;
     }
-    that.latest_time = time;
-    var time_slice = {};
+    that.lastest_time = time;
 
-    new_data.entities = this._get_entities(new_data);
-    // var time_shrink_ratio = this.time_shrink_ratio;
-    var _data = this.storyline_data;
-
-    // if (DEBUG_MODE) {
-    //     //time *= 200;
-    // }
-
-    // extend straighten shifts
-    if (that.straighten == null) {
-        _data.straighten_shifts[time] = 0;
-    } else {
-        var time_points = _.keys(_data.straighten_shifts);
-        var latest_time_point = _.max(time_points);
-        var latest_straighten_shift = _data.straighten_shifts[latest_time_point];
-        _data.straighten_shifts[time] = latest_straighten_shift;
-    }
-
-    // update time range
     _data.range[0] = _.min([_data.range[0], time]);
     _data.range[1] = _.max([_data.range[1], time]);
-
-    // create new entity lines that never ever exists
-    for (var entity in new_data.entities) {
-        // var entity = new_data.entities[i];
-        console.log(entity);
+    for (var i = 0; i < new_data.entities.length; i++) {
+        var entity = new_data.entities[i];
         if (!_.has(_data.entities, entity)) {
             _data.entities[entity] = [];
             // that.entity_set.add(entity);
         }
     }
-    // extend old entity lines not mentioned in new time slice
-    for (var entity in _data.entities) {
-        var history_points = _data.entities[entity];
-        if (!_.has(new_data.entities, entity)) {
-            var prev_point = history_points[history_points.length - 1];
-            var nn = {
-                "time": time,
-                "height": prev_point.height
-            };
-            time_slice[entity] = nn;
-            history_points.push(nn);
-        }
-    }
 
-    // incorporate new data into old data series
     for (var i = 0; i < new_data.sessions.length; i++) {
         var session = new_data.sessions[i];
         _.each(session, function(v, k) {
@@ -191,12 +153,11 @@ StreamingStoryline.prototype.update = function(new_data) {
                     v = Math.random() * that.svg_height;
                 }
                 // the entity is newly added
-                var nn = {
+                history_points.push({
                     "time": time,
-                    "height": v
-                };
-                history_points.push(nn);
-                time_slice[k] = nn;
+                    "height": v,
+                    "type": "anchor"
+                });
             } else {
                 var prev_point = history_points.pop();
                 if (DEBUG_MODE) {
@@ -206,17 +167,27 @@ StreamingStoryline.prototype.update = function(new_data) {
                         v = Math.random() * that.svg_height;
                     }
                 }
-                history_points.push(prev_point);
-                var nn = {
-                    "time": time,
-                    "height": v
-                };
-                time_slice[k] = nn;
-                history_points.push(nn);
+                if (prev_point.height == v) {
+                    if (prev_point.type == "anchor") {
+                        history_points.push(prev_point);
+                    }
+                    history_points.push({
+                        "time": time,
+                        "height": v,
+                        "type": "extend"
+                    });
+                } else if (prev_point.height != v) {
+                    prev_point.type = "anchor";
+                    history_points.push(prev_point);
+                    history_points.push({
+                        "time": time,
+                        "height": v,
+                        "type": "anchor"
+                    });
+                }
             }
         });
     }
-    that.storyline_data.time_slices[time] = time_slice;
     this._draw();
 };
 
@@ -272,6 +243,8 @@ StreamingStoryline.prototype._draw = function() {
     ;
     that.storylines.exit().remove();
 
+    var cc = clickcancel();
+
     that.storylines
         .attr("d", function (entity_name) {
             var hps = that.storyline_data.entities[entity_name];
@@ -280,12 +253,9 @@ StreamingStoryline.prototype._draw = function() {
         .attr("id", function (entity_name) {
             return "entity-" + entity_name;
         })
-        .transition()
-        .duration(500)
         .style("stroke", function (entity_name) {
             return that.color(entity_name);
-        });
-    that.storylines
+        })
         // .each(function (entity_name) {
         //     d3.select("#entity-" + entity_name).call(cc);
         // })
@@ -303,7 +273,6 @@ StreamingStoryline.prototype._draw = function() {
         })
         .on("click", function (d) {
             console.log(d, "click");
-            that.straighten_by.call(that, d);
         });
 };
 
