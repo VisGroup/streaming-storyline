@@ -56,14 +56,14 @@ WEIGHTS={'JABBA':10,'VADOR':4}
 
  Name      :  [1]_2
  Id        :  7
- Start     :  2
+ Start     :  3
  End       :  7
  Members   :  [1] 
  Location  :  7 
 
  Name      :  [2]_2
  Id        :  8
- Start     :  2
+ Start     :  3
  End       :  7
  Members   :  [2] 
  Location  :  7 
