@@ -53,9 +53,11 @@ StreamingStoryline.prototype._straighten_shift = function () {
         for (var entity in time_slice) {
             time_slice[entity].height += shift;
         }
-        // clear straighten shifts
-        straighten_shifts[time] = 0;
+        //// clear straighten shifts
+        //straighten_shifts[time] = 0;
     }
+
+    console.log("shift");
 };
 
 StreamingStoryline.prototype._straighten_unshift = function () {
@@ -70,6 +72,8 @@ StreamingStoryline.prototype._straighten_unshift = function () {
         // clear straighten shifts
         straighten_shifts[time] = 0;
     }
+
+    console.log("unshift");
 };
 
 StreamingStoryline.prototype.straighten_by = function (d) {
@@ -77,7 +81,6 @@ StreamingStoryline.prototype.straighten_by = function (d) {
 
     if (that.straighten != null) {
         that._straighten_unshift();
-        that.straighten = null;
     }
 
     if (that.straighten != d) {
@@ -90,12 +93,23 @@ StreamingStoryline.prototype.straighten_by = function (d) {
             sum += history_points[i].height;
         }
         var average_height = sum / history_points.length;
+
+        // get shifts of each time points
         for (var i = 0; i < history_points.length; i ++) {
             var time = history_points[i].time;
             straighten_shifts[time] = average_height - history_points[i].height;
         }
         that._straighten_shift();
+    }
+
+    if (that.straighten == null) {
         that.straighten = d;
+    } else {
+        if (that.straighten != d) {
+            that.straighten = d;
+        } else {
+            that.straighten = null;
+        }
     }
 
     that._draw();
