@@ -50,7 +50,15 @@
 				<div class="card-panel">
 					<div style="height:400px;">
 						<!--storyline here-->
+						<!--<defs>-->
+							<!--<filter id="filter1" x="0" y="0">-->
+								<!--<feOffset result="offOut" in="SourceAlpha" dx="-5" dy="-5" />-->
+								<!--<feGaussianBlur result="blurOut" in="offOut" stdDeviation="3" />-->
+								<!--<feBlend in="SourceGraphic" in2="blurOut" mode="normal" />-->
+							<!--</filter>-->
+						<!--</defs>-->
 						<div id="streaming-storyline"></div>
+
 					</div>
 				</div>
 			</div>
@@ -74,6 +82,7 @@
 		</div>
 	</main>
 	<a id="loading-start" class="btn">start data transfering</a>
+	<a id="loading-stop" class="btn">stop data transfering (Debug use)</a>
 
 
 	<script type="text/javascript" src="js/jquery-2.1.3.min.js"></script>
