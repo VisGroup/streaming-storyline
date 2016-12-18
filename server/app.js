@@ -8,6 +8,7 @@ var bodyParser = require('body-parser');
 var routes = require('./routes/index');
 var exec = require('child_process').exec;
 var spawn = require('child_process').spawn;
+var os = require('os');
 var platform = os.platform();
 
 var app = express();
