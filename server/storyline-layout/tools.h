@@ -2,21 +2,17 @@
 #define TOOLS_H
 
 #include <sstream>
+#include <string>
+#include <iostream>
+#include "StorylineLayout.hpp"
+#include "StorylineDataSlice.hpp"
 
-void split(const std::string &s, char delim, std::vector<std::string> &elems) {
-    std::stringstream ss;
-    ss.str(s);
-    std::string item;
-    while (std::getline(ss, item, delim)) {
-        elems.push_back(item);
-    }
-}
+using namespace std;
 
+void split(const std::string &s, char delim, std::vector<std::string> &elems);
 
-std::vector<std::string> split(const std::string &s, char delim) {
-    std::vector<std::string> elems;
-    split(s, delim, elems);
-    return elems;
-}
+std::vector<std::string> split(const std::string &s, char delim);
+
+StorylineDataSlice * parseData(string line);
 
 #endif

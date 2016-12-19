@@ -108,11 +108,25 @@ function getMsg(req, res) {
     var timer = setInterval(function() {
         var str = time + '\t';
         var len = data_all.events[time].length;
+        var visited = {};
         for (var j = 0; j < len; j++) {
-            str += JSON.stringify(data_all.sessions[data_all.events[time][j]].members).split(/[\[\]]/)[1];
+            var members = data_all.sessions[data_all.events[time][j]].members;
+
+            // avoid entity duplicate
+            var unvisited = [];
+            for (var i_m in members) {
+                var m = members[i_m];
+                if (visited[m]) {
+                    continue;
+                }
+                visited[m] = true;
+                unvisited.push(m);
+            }
+
+            str += JSON.stringify(unvisited).split(/[\[\]]/)[1];
             str += '\t';
         }
-        child.stdin.write(str + '\n');
+        //child.stdin.write(str + '\n');
         console.log(str);
         time++;
 
@@ -128,7 +142,7 @@ function getMsg(req, res) {
             console.log("finish");
             clearInterval(timer);
         }
-    }, 1000);
+    }, 10);
 }
 
 function webpage(req, res) {
