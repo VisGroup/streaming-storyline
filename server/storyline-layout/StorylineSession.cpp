@@ -10,6 +10,9 @@ std::string StorylineSession::toString() {
 	res << ("{");
 	std::map<int, double>::iterator it = this->positions.begin();
 	for (; ;) {
+		if (it == this->positions.end()) {
+			break;
+		}
 		res << (it->first);
 		res << (": ");
 		res << (it->second);

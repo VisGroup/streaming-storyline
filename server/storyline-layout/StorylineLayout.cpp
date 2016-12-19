@@ -24,7 +24,7 @@ StorylineDataSlice StorylineLayout::update(StorylineDataSlice &slice) {
     this->ordering(slice);
     //this->aligning(slice);
 	slice.session = tempsession;
-	slice.show();
+	//slice.show();
 	return slice;
     //return this->compressing();
 }
@@ -62,7 +62,7 @@ void StorylineLayout::ordering(StorylineDataSlice &slice) {
 				slice.show(slice.groupnew);
 				slice.show(tempsession);
 				slice.show(preslice.session);*/
-				std::cout << slice.groupnew[i].simwith<< std::endl;
+				//std::cout << slice.groupnew[i].simwith<< std::endl;
 				preslice.insertSession(tempsession, slice.groupnew[i], slice.groupnew[i].simwith);
 		/*		std::cout << "inserted:" << std::endl;
 				slice.show(slice.groupnew);
