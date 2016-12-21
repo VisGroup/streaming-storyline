@@ -10,9 +10,9 @@
 
 std::string StorylineDataSlice::toString() {
 	std::stringstream result;
-	result << ("{time:");
+	result << ("{\"time\":");
 	result << (this->slicetime);
-	result << (",sessions:[");
+	result << (",\"sessions\":[");
 	for (std::vector<StorylineSession>::iterator it = this->session.begin(); ;) {
 		result << ((*it).toString());
 		it++;
@@ -43,13 +43,13 @@ void StorylineDataSlice::groupClassify(StorylineDataSlice &slice, StorylineDataS
 		StorylineSession inisession;
 		tempsession.push_back(inisession);
 	}
-	for (unsigned int j = 0; j < slice.session.size(); j++) {
-		for (unsigned int i = 0; i < preslice.session.size(); i++) {
+	for (int j = 0; j < slice.session.size(); j++) {
+		for (int i = 0; i < preslice.session.size(); i++) {
 			if (preslice.session[i].equals(slice.session[j])) {
 				tempsession[i] = preslice.session[i];
 				tempsession[i].unempty = 1;
 				tempsession[i].simwith = i;
-				tempsession[i].similarity = slice.session[i].positions.size();
+				tempsession[i].similarity = slice.session[j].positions.size();
 				slice.groupextend.push_back(preslice.session[i]);
 				break;
 			}
@@ -80,9 +80,9 @@ void StorylineDataSlice::updateNewGroup(StorylineDataSlice &preslice, StorylineS
 
 void StorylineDataSlice::cputSimNum(StorylineDataSlice &preslice) {
 	std::vector<int> simwithvec;
-	for (unsigned int i = 0; i < groupnew.size(); i++) {
+	for (int i = 0; i < groupnew.size(); i++) {
 		int simcount=0,temp;
-		for (unsigned int j = 0; j < preslice.session.size(); j++) {
+		for (int j = 0; j < preslice.session.size(); j++) {
 			temp = groupnew[i].simEntiNumInMap(preslice.session[j]);
 			//std::cout << temp << "  " << simcount << std::endl;
 			if (temp != 0) {
@@ -123,15 +123,22 @@ void StorylineDataSlice::cputSimNum(StorylineDataSlice &preslice) {
 }
 
 void StorylineDataSlice::cputLCS(std::vector<StorylineSession> &tempsession,StorylineDataSlice &preslice) {
-	for (unsigned int i = int((tempsession.size() - 1) / 2); i < tempsession.size(); i++) {
+	for (int i = 0; i < tempsession.size(); i++) {
 		int simwith = tempsession[i].simwith;
 		//std::cout << "simwith" << simwith << std::endl;
 		if (simwith >= 0) {
+			std::map<int, double>::iterator lastpos;
 			tempsession[i].LoopLCS(preslice.session[simwith]);
-			std::map<int, double>::iterator lastpos = tempsession[i - 1].positions.end();
+			std::map<int, double> basic;
+			basic[-2] = -2;
+			if(i==0){
+				lastpos = basic.end();
+			}else{
+				lastpos = tempsession[i - 1].positions.end();
+			}
 			double thisbeginpos = tempsession[i].thisBeginPos();
 			lastpos--;
-			if (i == int((tempsession.size() - 1) / 2)) {
+			if (i == 0) {
 				preslice.session[simwith].matched = 1;
 				tempsession[i].aligningByLCS(preslice.session[simwith]);
 			}
@@ -158,40 +165,40 @@ void StorylineDataSlice::cputLCS(std::vector<StorylineSession> &tempsession,Stor
 			}
 		}
 	 }
-	if (int((tempsession.size() - 1) / 2) != 0) {
-		for (int i = int((tempsession.size() - 1) / 2) - 1; i >= 0; i--) {
-			int simwith = tempsession[i].simwith;
-			//std::cout << "simwith" << simwith << std::endl;
-			if (simwith >= 0) {
-				tempsession[i].LoopLCS(preslice.session[simwith]);
-				std::map<int, double>::iterator nextpos = tempsession[i + 1].positions.begin();
-				double thisendpos = tempsession[i].thisEndPos();
-				if (preslice.session[simwith].matched == 0 && thisendpos + MINSPACE <= nextpos->second) {
-					preslice.session[simwith].matched = 1;
-					tempsession[i].aligningByLCS(preslice.session[simwith]);
-				}
-				else {
-					tempsession[i].aligningByTurn(nextpos->second, MINSPACE);
-				}
-			}
-			else {
-					int nexti = i + 1;
-					std::map<int, double>::iterator nextsessiter = tempsession[nexti].positions.begin();
-					std::map<int, double>::iterator thissessiter = tempsession[i].positions.end();
-					std::map<int, double>::iterator thisbegin = tempsession[i].positions.begin();
+	//if (int((tempsession.size() - 1) / 2) > 0) {
+	//	for (int i = int((tempsession.size() - 1) / 2) - 1; i >= 0; i--) {
+	//		int simwith = tempsession[i].simwith;
+	//		//std::cout << "simwith" << simwith << std::endl;
+	//		if (simwith >= 0) {
+	//			tempsession[i].LoopLCS(preslice.session[simwith]);
+	//			std::map<int, double>::iterator nextpos = tempsession[i + 1].positions.begin();
+	//			double thisendpos = tempsession[i].thisEndPos();
+	//			if (preslice.session[simwith].matched == 0 && thisendpos + MINSPACE <= nextpos->second) {
+	//				preslice.session[simwith].matched = 1;
+	//				tempsession[i].aligningByLCS(preslice.session[simwith]);
+	//			}
+	//			else {
+	//				tempsession[i].aligningByTurn(nextpos->second, MINSPACE);
+	//			}
+	//		}
+	//		else {
+	//				int nexti = i + 1;
+	//				std::map<int, double>::iterator nextsessiter = tempsession[nexti].positions.begin();
+	//				std::map<int, double>::iterator thissessiter = tempsession[i].positions.end();
+	//				std::map<int, double>::iterator thisbegin = tempsession[i].positions.begin();
 
-					thissessiter--;
-					thissessiter->second = nextsessiter->second - MINSPACE;
-					thissessiter--;
-					thisbegin--;
-					while (thissessiter != thisbegin) {
-						(--thissessiter)->second = (++thissessiter)->second - tempsession[i].MINDISTANCE;
-						thissessiter--;
-					}
-				//assign the position of elements in the totally new session
-			}
-		}
-	}
+	//				thissessiter--;
+	//				thissessiter->second = nextsessiter->second - MINSPACE;
+	//				thissessiter--;
+	//				thisbegin--;
+	//				while (thissessiter != thisbegin) {
+	//					(--thissessiter)->second = (++thissessiter)->second - tempsession[i].MINDISTANCE;
+	//					thissessiter--;
+	//				}
+	//			//assign the position of elements in the totally new session
+	//		}
+	//	}
+	//}
 }
 
 void StorylineDataSlice::insertGhost(StorylineDataSlice &preslice, std::vector<StorylineSession> &tempsession, int simwith) {

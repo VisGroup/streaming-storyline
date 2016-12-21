@@ -19,7 +19,7 @@
 
 using namespace std;
 
-int mainasd() {
+int main() {
 	StorylineLayout * sl = new StorylineLayout();
 	/*string line("0	4	6,3	1,5	");
 	StorylineDataSlice * result = sl->update(parseData(line));
@@ -30,10 +30,21 @@ int mainasd() {
 		if (line == "#") {
 			break;
 		}
-		// parse
-		StorylineDataSlice result = sl->update(*parseData(line));
-		//        cout << "fuck + random" << endl;
-		cout << result.toString() << endl;
+		StorylineDataSlice * slice = parseData(line);
+		if (slice->slicetime == 0) {
+			std::istringstream iss(line);
+			sl->preslice = *slice;
+		}
+		else {
+			std::istringstream iss(line);
+			StorylineDataSlice result = sl->update(*slice);
+			cout << result.toString() << endl;
+		}
+
+		//// parse
+		//StorylineDataSlice result = sl->update(*parseData(line));
+		////        cout << "fuck + random" << endl;
+		//cout << result.toString() << endl;
 	}
 	return 0;
 }

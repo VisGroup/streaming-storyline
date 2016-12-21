@@ -85,6 +85,54 @@ function postDemo(req, res) {
     });
 }
 
+var http = require("http");
+var querystring = require('querystring');
+
+function submit_post_request (options, request, callback) {
+    var req = http.request(options, function(res) {
+        //console.log('Status: ' + res.statusCode);
+        //console.log('Headers: ' + JSON.stringify(res.headers));
+        res.setEncoding('utf8');
+        res.on('data', function (body) {
+            console.log('Body: ' + body);
+            // eliminate return carriages
+            callback(body.replace(/\n+/, ''));
+        });
+    });
+    req.on('error', function(e) {
+        console.log('problem with request: ' + e.message);
+    });
+    // write data to request body
+    var param = querystring.stringify({
+        "data": "hahaha"
+    });
+//    var r;
+//    eval("r= + request);
+
+    req.write(param);
+    req.end();
+}
+
+function submit_get_request (url, para, callback) {
+    var handler = function(response) {
+        var str = '';
+
+        //another chunk of data has been recieved, so append it to `str`
+        response.on('data', function (chunk) {
+            str += chunk;
+        });
+
+        //the whole response has been recieved, so we just print it out here
+        response.on('end', function () {
+            callback(str);
+        });
+    };
+
+    var u = url + "?" + querystring.stringify(para);
+    //console.log(u);
+    http.request(u, handler).end();
+}
+
 function getMsg(req, res) {
     console.log("get msg");
     res.writeHead(200, {
@@ -92,21 +140,40 @@ function getMsg(req, res) {
         "Cache-Control": "no-cache",
         "Connection": "keep-alive"
     });
-    console.log(23333);
+    //console.log(23333);
 
     var data_all = parseTxtData('movie_data/StarWars_interaction_sessions.txt');
 
     var time = 0;
 
-    var child_executable = platform == "win32" ? "StreamingStoryline.exe" : "gintama";
+    var child_executable = platform == "win32" ? "Debug/StreamingStoryline.exe" : "gintama";
+    var optimizer_executable = "python ../optimizer/main.py";
     var child = spawn('storyline-layout/' + child_executable);
+    var preslice = "{}";
     child.stdout.on('data', function(data) {
-        console.log(data.toString());
-        res.write("data:" + data.toString() + "\n\n");
+        //console.log("response", data.toString());
+        var req = {
+            "preslice": preslice,
+            "current": data.toString()
+        };
+        submit_get_request("http://localhost:23334/tasks/optimizer", req, function (response) {
+            response = response.replace(/\n+/g, '');
+            res.write("data:" + response + "\n\n");
+            console.log(response + "\n\n");
+            preslice = response;
+        });
+        //var optimizer_child = spawn(optimizer_executable + ' "' + data.toString() + '"');
+        //var result = '';
+        //optimizer_child.stdout.on('data', function(_d) {
+        //    //result += _d.toString();
+        //    res.write("data:" + _d + "\n\n");
+        //});
+        //optimizer_child.on('close', function () {
+        //    res.write("data:" + result + "\n\n");//});
     });
 
     var timer = setInterval(function() {
-        var str = time + '\t';
+        var str = time + ' ';
         var len = data_all.events[time].length;
         var visited = {};
         for (var j = 0; j < len; j++) {
@@ -124,16 +191,11 @@ function getMsg(req, res) {
             }
 
             str += JSON.stringify(unvisited).split(/[\[\]]/)[1];
-            str += '\t';
+            str += ' ';
         }
-        //child.stdin.write(str + '\n');
-        console.log(str);
+        //console.log("input", str);
+        child.stdin.write(str + '\n');
         time++;
-
-        //if (time > 5) {
-        //    clearInterval(timer);
-        //    return;
-        //}
 
         if (data_all.events[time] == undefined) {
             child.stdin.write('#\n');
@@ -142,7 +204,7 @@ function getMsg(req, res) {
             console.log("finish");
             clearInterval(timer);
         }
-    }, 10);
+    }, 2000);
 }
 
 function webpage(req, res) {

@@ -20,10 +20,20 @@ StorylineLayout::~StorylineLayout() {
 }
 
 StorylineDataSlice StorylineLayout::update(StorylineDataSlice &slice) {
+	//preslice.show();
+	//slice.show(tempsession);
+	//slice.show();
 	this->classify(slice);
+	//preslice.show();
+	//slice.show(tempsession);
+	//slice.show(slice.groupnew);
+	//slice.show();
     this->ordering(slice);
-    //this->aligning(slice);
+	//slice.show(tempsession);
+    this->aligning(slice);
+	//slice.show(tempsession);
 	slice.session = tempsession;
+	this->preslice = slice;
 	//slice.show();
 	return slice;
     //return this->compressing();

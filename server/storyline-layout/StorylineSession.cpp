@@ -13,7 +13,7 @@ std::string StorylineSession::toString() {
 		if (it == this->positions.end()) {
 			break;
 		}
-		res << (it->first);
+		res << "\"" << (it->first) << "\"";
 		res << (": ");
 		res << (it->second);
 		it++;

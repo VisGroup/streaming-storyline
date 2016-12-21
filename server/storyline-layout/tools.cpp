@@ -27,7 +27,7 @@ std::vector<std::string> split(const std::string &s, char delim) {
 StorylineDataSlice * parseData(string line) {
 	StorylineDataSlice * slice = new StorylineDataSlice();
 	// <time>TAB<name>,<name>,<name>\t<name>,<name>,<name>\t
-	vector<string> tokens = split(line, '\t');
+	vector<string> tokens = split(line, ' ');
 	vector<string>::iterator it = tokens.begin();
 	slice->slicetime = stoi(*(it++));
 	for (; it != tokens.end(); it++) {

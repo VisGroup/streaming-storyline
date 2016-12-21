@@ -233,7 +233,7 @@ StreamingStoryline.prototype.update = function(new_data) {
             }
             var history_points = _data.entities[k];
             if (history_points.length == 0) {
-                if (DEBUG_MODE) {
+                if (DEBUG_MODE && Random_Layout) {
                     v = Math.random() * that.svg_height;
                 }
                 // the entity is newly added
