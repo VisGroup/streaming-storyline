@@ -120,12 +120,10 @@ def convert_format(slice):
 
 if __name__ == '__main__':
 	import json
+	from config import CONFIG
 	c = '{"time":5,"sessions":[{"0": 0},{"1": 2,"2": 3},{"3": 5},{"4": 7},{"5": 9},{"6": 11,"7": 12},{"8": 14}]}'
 	p = '{  "sessions": [    {      "0": 0    },     {      "1": 2,       "2": 3    },     {      "3": 5    },     {      "4": 7    },     {      "5": 9    },     {      "6": 11,       "7": 12    },     {      "8": 14    }  ],   "time": 4}'
 	current = json.loads(c)
 	preslice = json.loads(p)
 
-	compaction(current, preslice, {
-		"d-in": 5,
-		"d-out": 15
-	})
+	compaction(current, preslice, CONFIG)
