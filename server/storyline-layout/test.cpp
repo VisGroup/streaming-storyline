@@ -8,7 +8,7 @@
 
 using namespace std;
 
-int mainas() {
+int main1() {
 	ifstream f("data.txt");
 	std::string line;
 	StorylineLayout * sl = new StorylineLayout();
@@ -19,14 +19,15 @@ int mainas() {
 			std::istringstream iss(line);
 			StorylineDataSlice *preslice = parseData(line);
 			sl->preslice = *preslice;
-			time++;
+			cout << preslice->toString() << endl;
 		}else{
 			std::istringstream iss(line);
 			StorylineDataSlice *slice = parseData(line);
+			//slice->show();
 			StorylineDataSlice result = sl->update(*slice);
 			cout << result.toString() << endl;
-			time++;
 		}
+		time++;
 	}
 
 	f.close();

@@ -25,28 +25,31 @@ int main() {
 	StorylineDataSlice * result = sl->update(parseData(line));
 	cout << result->toString() << endl;*/
 	string line;
+	int time = 0;
 	while (true) {
 		getline(cin, line);
-		//cout << line << endl;
 		if (line == "#") {
 			break;
 		}
-		StorylineDataSlice * slice = parseData(line);
-		if (slice->slicetime == 0) {
-			std::istringstream iss(line);
-			sl->preslice = *slice;
-			cout << slice->toString() << endl;
-		}
-		else {
-			std::istringstream iss(line);
-			StorylineDataSlice result = sl->update(*slice);
-			cout << result.toString() << endl;
-		}
-
-		//// parse
+		// parse
 		//StorylineDataSlice result = sl->update(*parseData(line));
 		////        cout << "fuck + random" << endl;
 		//cout << result.toString() << endl;
+
+		if (time == 0) {
+			std::istringstream iss(line);
+			StorylineDataSlice *preslice = parseData(line);
+			sl->preslice = *preslice;
+			cout << preslice->toString() << endl;
+		}
+		else {
+			std::istringstream iss(line);
+			StorylineDataSlice *slice = parseData(line);
+			//slice->show();
+			StorylineDataSlice result = sl->update(*slice);
+			cout << result.toString() << endl;
+		}
+		time++;
 	}
 	return 0;
 }

@@ -27,6 +27,7 @@ std::string StorylineDataSlice::toString() {
 	return result.str();
 }
 
+
 void StorylineDataSlice::clearGhost(std::vector<StorylineSession> &tempsession) {			  //clear the empty ghost slots and other empty slots
 	for (unsigned int i = 0; i<tempsession.size();)
 	{

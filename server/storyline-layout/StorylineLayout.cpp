@@ -28,11 +28,15 @@ StorylineDataSlice StorylineLayout::update(StorylineDataSlice &slice) {
 	//slice.show(tempsession);
 	//slice.show(slice.groupnew);
 	//slice.show();
+	//if (slice.slicetime == 3) {
+	//	int ijk = 0;
+	//}
     this->ordering(slice);
 	//slice.show(tempsession);
     this->aligning(slice);
 	//slice.show(tempsession);
 	slice.session = tempsession;
+	std::vector<StorylineSession>().swap(tempsession);
 	this->preslice = slice;
 	//slice.show();
 	return slice;
@@ -56,19 +60,20 @@ void StorylineLayout::ordering(StorylineDataSlice &slice) {
 				slice.updateNewGroup(preslice, slice.groupnew[i], simwith);
 				tempsession[simwith] = slice.groupnew[i];
 				tempsession[simwith].unempty = 1;                              //标记为非空
-			} else {
+			}
+			else {
 				slice.insertGhost(preslice, tempsession, simwith);				//相似槽对应位置非空，需在两向量中同时插入GhostSlot
-			/*	std::cout << "InsertGhost:" << std::endl;
+				/*std::cout << "InsertGhost:" << std::endl;
 				slice.show(slice.groupnew);
 				slice.show(tempsession);
 				slice.show(preslice.session);*/
 				slice.updateSimwith(tempsession,slice.groupnew, simwith);					//因为插入了GhostSlot因此需要更新相似槽位置
-	/*			std::cout << "updateSimwith:" << std::endl;
+				/*std::cout << "updateSimwith:" << std::endl;
 				slice.show(slice.groupnew);
 				slice.show(tempsession);
 				slice.show(preslice.session);*/
 				slice.updateNewGroup(preslice, slice.groupnew[i], simwith);		//将preslice中与该newgroup相同entity的y-pos赋值给newgroup中entity.
-		/*		std::cout << "updateNewGroup:" << std::endl;
+				/*std::cout << "updateNewGroup:" << std::endl;
 				slice.show(slice.groupnew);
 				slice.show(tempsession);
 				slice.show(preslice.session);*/
@@ -79,8 +84,7 @@ void StorylineLayout::ordering(StorylineDataSlice &slice) {
 				slice.show(tempsession);
 				slice.show(preslice.session);*/
 			}
-		}
-		else {
+		}else {
 			tempsession.push_back(slice.groupnew[i]);
 			tempsession[tempsession.size()-1].unempty = 1;
 		}
