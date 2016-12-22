@@ -27,6 +27,7 @@ int main() {
 	string line;
 	while (true) {
 		getline(cin, line);
+		//cout << line << endl;
 		if (line == "#") {
 			break;
 		}
@@ -34,6 +35,7 @@ int main() {
 		if (slice->slicetime == 0) {
 			std::istringstream iss(line);
 			sl->preslice = *slice;
+			cout << slice->toString() << endl;
 		}
 		else {
 			std::istringstream iss(line);

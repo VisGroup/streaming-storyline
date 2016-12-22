@@ -152,15 +152,24 @@ function getMsg(req, res) {
     var preslice = "{}";
     child.stdout.on('data', function(data) {
         //console.log("response", data.toString());
+        console.log("1", data.toString());
+        if (data == "\r\n") {
+            return;
+        }
         var req = {
             "preslice": preslice,
             "current": data.toString()
         };
         submit_get_request("http://localhost:23334/tasks/optimizer", req, function (response) {
-            response = response.replace(/\n+/g, '');
+            //eval("response=" + response);
+            if (response == "invalid") {
+                return;
+            }
+            response = response.replace(/[ \t\n\r]+/g, '');
             res.write("data:" + response + "\n\n");
-            console.log(response + "\n\n");
+            console.log("response\t" + response + "\n\n");
             preslice = response;
+            setTimeout(timer, 200);
         });
         //var optimizer_child = spawn(optimizer_executable + ' "' + data.toString() + '"');
         //var result = '';
@@ -172,7 +181,7 @@ function getMsg(req, res) {
         //    res.write("data:" + result + "\n\n");//});
     });
 
-    var timer = setInterval(function() {
+    var timer = function() {
         var str = time + ' ';
         var len = data_all.events[time].length;
         var visited = {};
@@ -193,18 +202,24 @@ function getMsg(req, res) {
             str += JSON.stringify(unvisited).split(/[\[\]]/)[1];
             str += ' ';
         }
+        console.log("time", time);
         //console.log("input", str);
         child.stdin.write(str + '\n');
         time++;
+        //if (time > 2) {
+        //    clearInterval(timer);
+        //    return;
+        //}
 
         if (data_all.events[time] == undefined) {
             child.stdin.write('#\n');
             child.stdin.end();
             res.write("data:over\n\n");
             console.log("finish");
-            clearInterval(timer);
+            //clearInterval(timer);
         }
-    }, 2000);
+    };
+    timer();
 }
 
 function webpage(req, res) {

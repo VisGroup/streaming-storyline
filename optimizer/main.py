@@ -14,6 +14,8 @@ app = Flask(__name__)
 def get_tasks():
     current = json.loads(request.args.get('current'))
     preslice = json.loads(request.args.get('preslice'))
+    if "time" in preslice and current["time"] != preslice["time"] + 1:
+        return "invalid"
     # print(request.args.get('current'))
     # print(request.args.get('preslice'))
     result = compaction(current, preslice, CONFIG)

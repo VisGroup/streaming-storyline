@@ -127,7 +127,15 @@ def compaction(current, preslice, config):
 		aval.append(array([-1., 1.]))
 	objsense = mosek.objsense.minimize
 	res = optimize((qsubi, qsubj, qval), c, (asub, aval), (bkc, blc, buc), numvar, numcon, objsense)
-	print(res)
+	# print(res)
+	entity_heights = {}
+	for i, entity in enumerate(current_order):
+		entity_heights[entity] = res[i]
+	for session in current["sessions"]:
+		for entity in session:
+			session[entity] = entity_heights[entity]
+
+	return current
 
 
 def convert_format(slice):
