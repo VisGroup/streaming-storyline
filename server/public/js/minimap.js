@@ -1,11 +1,14 @@
-var select_status = 0;
+var load_started = false;
+var select_status = false;
+var mousein_status = false;
+var update_data = false;
 var first_click;
 
 var width_graybox = 150;
 var width_orangebox = 150;
 
 var masks = $('.mm_mask');
-masks.click(mm_click_event);
+// masks.click(mm_click_event);
 masks.mousemove(mm_move_event);
 masks.mouseleave(mm_leave_event);
 masks.mousedown(mm_down_event);
@@ -14,31 +17,53 @@ masks[0].onmousewheel = mm_scroll_event;
 var minimap_width = masks.width();
 var minimap_height = masks.height();
 
-var last_center;
-var last_width;
+var cursor_pos_list = [];
+var cursor_pos = null;
+var minimap_select_center;
+var minimap_select_width;
 
-function drawSelectBox(selector, position, width, update_data) {
+var mouse_timer = setInterval(function() {
+    if (!load_started) return;
+    if (cursor_pos != null) {
+        cursor_pos_list.push(cursor_pos);
+    }
+    if (cursor_pos_list.length > 7) {
+        cursor_pos_list.splice(0, 1);
+    }
+    if (update_data && minimap_select_center && minimap_select_width) {
+        update_storyline_view(minimap_select_center, minimap_select_width, getSpeed());
+    }
+    // if (!update_data) {
+    //     update_minimap_view();
+    // }
+}, 1000 / 60);
+
+function getSpeed() {
+    speed = 0;
+    var l = cursor_pos_list.length;
+    if (!l) return speed;
+    speed = (cursor_pos_list[l - 1] - cursor_pos_list[0]) / l;
+    return speed;
+}
+
+function drawSelectBox(selector, position, width, update) {
+    // console.log(position, width);
     var left = position - width / 2;
     if (left < 0) {
         width += left;
         left = 0;
     }
     var w = $('.mm_mask').width();
+
+    update_data = (update == true);
+    if (update) {
+        minimap_select_center = left + width / 2;
+        minimap_select_width = width;
+    }
     if (left + width > w) {
         width = w - left;
     }
     $(selector).css('opacity', '0.5').css('left', left + 'px').css('width', width + 'px');
-    if (update_data) {
-        // console.log(left, left + width);
-        var center = left + width / 2;
-        var speed = 0;
-        if (last_center != undefined) {
-            speed = [center - last_center, width - last_width];
-        }
-        update_storyline_view(left + width / 2, width, speed);
-        last_center = left + width / 2;
-        last_width = width;
-    }
 }
 
 function hideSelectBox(selector) {
@@ -46,6 +71,7 @@ function hideSelectBox(selector) {
 }
 
 function mm_down_event(e) {
+    if (!load_started) return;
     var offset = e.offsetX;
     select_status = 1;
     width_orangebox = width_graybox;
@@ -54,19 +80,22 @@ function mm_down_event(e) {
 }
 
 function mm_up_event(e) {
+    if (!load_started) return;
     var offset = e.offsetX;
     select_status = 0;
     width_orangebox = width_graybox;
 
     drawSelectBox('.mm_orange', offset, width_orangebox, true);
-    last_center = undefined;
-    last_width = undefined;
+    update_data = false;
+    storyline.restoreNormalHeight();
+
     // hideSelectBox('.mm_gray');
     //console.log("up", offset, width_orangebox);
     // update_storyline_view(offset, width_orangebox);
 }
 
 function mm_scroll_event(e) {
+    if (!load_started) return;
     var offset = e.offsetX;
     // console.log(e.wheelDeltaY);
     var delta = -e.wheelDeltaY / 40;
@@ -86,14 +115,19 @@ function mm_scroll_event(e) {
 }
 
 function mm_leave_event() {
+    mousein_status = false;
+    if (!load_started) return;
     select_status = 0;
-    last_width = undefined;
-    last_center = undefined;
+    update_data = false;
+    storyline.restoreNormalHeight();
     hideSelectBox('.mm_gray');
 }
 
 function mm_move_event(e) {
+    mousein_status = true;
+    if (!load_started) return;
     var offset = e.offsetX;
+    cursor_pos = offset;
     //if (offset < width_graybox / 2 || offset + width_graybox / 2 > minimap_width) {
     //	return;
     //}
@@ -106,51 +140,76 @@ function mm_move_event(e) {
     }
 }
 
-function update_storyline_view(center, width_orangebox, speed) {
-    console.log(speed);
-    var actual_minimap_width = minimap_width - width_orangebox;
-    storyline.scrollTo((center - width_orangebox / 2) / actual_minimap_width, (center + width_orangebox / 2) / actual_minimap_width, 1, select_status);
+function update_storyline_view(center, width, speed) {
+    // console.log(speed); // speed[0]--center的速度， speed[1]--width的改变速度
+    var actual_minimap_width = minimap_width;// - width / 2;
+    // console.log(center, width);
+    storyline.scrollTo(
+        (center - width / 2) / actual_minimap_width, // start
+        (center + width / 2) / actual_minimap_width, // end
+        speed, // speed
+        select_status
+    );
 }
 
-function mm_click_event(e) {
-    return;
-    // if (e.which == 3) {
-    //     if (select_status >= 0) {
-    //         offset = e.offsetX / $('.mm_top_line').width();
-    //         var mousetime = (ed_now - st_now) * offset + st_now;
-    //         select_status = -1;
-    //         $('.mm_select_box').css('display', 'block').css('left', e.offsetX).css('width', 0);
-    //         mm_send(mousetime);
-    //     } else {
-    //         select_status = 0;
-    //         $('.mm_select_box').css('display', 'none').css('left', e.offsetX).css('width', 0);
-    //     }
-    //     return false;
-    // }
-    // switch (select_status) {
-    //     case 0:
-    //         select_status = 1;
-    //         $('.mm_select_box').css('display', 'block')
-    //             .css('left', offset + 'px');
-    //         first_click = offset;
-    //         break;
-    //     case 1:
-    //         select_status = 2;
-    //         if (e.offsetX < first_click) {
-    //             $('.mm_select_box').css('left', e.offsetX).css('width', first_click - e.offsetX);
-    //         } else {
-    //             $('.mm_select_box').css('left', first_click).css('width', -first_click + e.offsetX);
-    //         }
-    //         var o1 = first_click / $('.mm_top_line').width();
-    //         var o2 = offset / $('.mm_top_line').width();
-    //         var t1 = (ed_now - st_now) * o1 + st_now;
-    //         var t2 = (ed_now - st_now) * o2 + st_now;
-    //         mm_send(t1, t2);
-    //         break;
-    //     case 2:
-    //     case -1:
-    //         select_status = 0;
-    //         $('.mm_select_box').css('display', 'none');
-    //         break;
-    // }
+function update_minimap_view() {
+    var cw = storyline.getMinimapCenterWidth();
+    if (cw[1] > 1) return width;
+    var center = cw[0] * minimap_width;
+    var width = cw[1] * minimap_width;
+    if (!width || !center) return width;
+    // console.log(center, width);
+    width_orangebox = width;
+    width_graybox = width;
+    drawSelectBox('.mm_orange', center, width, false);
+
+}
+
+var ctx = $('#minimap')[0].getContext('2d');
+var canvas_width = 2000;
+var canvas_height = 100;
+
+function drawMinimap() {
+    var data = storyline.storyline_data;
+    var es = storyline.storyline_data.entities;
+    var range = data.range[1];
+    var minh = 1e30;
+    var maxh = 0;
+    for (var j in es) {
+        var entity = es[j];
+        entity.forEach(function(e, i) {
+            minh = Math.min(minh, e.height);
+            maxh = Math.max(maxh, e.height);
+        });
+    }
+    minh -= 5;
+    maxh += 5;
+    ctx.clearRect(0, 0, canvas_width, canvas_height);
+    for (var j in es) {
+        var oldx = undefined;
+        var oldy = undefined;
+        var old_time = 0;
+        ctx.beginPath();
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = storyline.color(j);
+        var entity = es[j];
+
+        entity.forEach(function(e, i) {
+            var x = e.time / range * canvas_width;
+            var y = (e.height - minh) / (maxh - minh) * canvas_height;
+            if (oldx != undefined && oldy != undefined) {
+                if (e.time - old_time > 100) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            } else {
+                ctx.moveTo(x, y);
+            }
+            oldx = x;
+            oldy = y;
+            old_time = e.time;
+        });
+        ctx.stroke();
+    }
 }

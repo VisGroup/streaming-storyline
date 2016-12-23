@@ -56,8 +56,8 @@ green {
     height: 100%;
     position: relative;
     /*display: none;*/
-    left: 92px;
-    width: 291px;
+    /*left: 92px;*/
+    /*width: 291px;*/
 }
 .mm_mask {
     opacity: 0.1;
@@ -65,25 +65,46 @@ green {
     position: relative;
     /*display: none;*/
     width: 100%;
-    background-image: url(../img/tmp.png);
-    top: -200%;
+    /*background-image: url(../img/tmp.png);*/
+    top: -300%;
 }
 .mm_select_box.mm_orange {
     border-left: 3px solid salmon;
     border-right: 3px solid salmon;
     background-color: lightsalmon;
-    top: -100%;
+    top: -200%;
+}
+#mm_canvas_container {
+    height: 100%;
+}
+#minimap {
+    width: 100%;
+    height: 100%;
 }
 .mm_select_box.mm_gray {
     border-left: 3px solid gray;
     border-right: 3px solid gray;
     background-color: lightgray;
-    top: 0%;
+    top: -100%;
 }
 path.storyline {
     stroke-width: 3.5px;
 }
-
 .material-icons {
     cursor: pointer;
+}
+#storyline {
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+.chip {
+    position: absolute;
+    left: -60px;
+    background-color: rgba(0, 0, 0, 0);
+    /*transition: top 0.5s;*/
+}
+#streaming-storyline {
+    position: relative;
+    width: 100%;
 }

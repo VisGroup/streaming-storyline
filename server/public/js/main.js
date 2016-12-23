@@ -83,4 +83,10 @@ if (DEBUG_MODE) {
     });
 }
 
+// var fisheye = d3.fisheye.circular()
+//     .radius(200)
+//     .distortion(2);
+
+
+
 init();
