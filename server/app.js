@@ -209,8 +209,8 @@ function getMsg(req, res) {
             str += JSON.stringify(unvisited).split(/[\[\]]/)[1];
             str += ' ';
         }
-        //console.log("time", time);
-        //console.log("input", str);
+        console.log("time", time);
+        console.log("input", str);
         child.stdin.write(str + '\n');
         time++;
         //if (time > 2) {
