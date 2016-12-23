@@ -3,6 +3,7 @@
 \param  url -- for example '/sync?time=1&data=2'
 \param  func -- call back function
 */
+var dataset_selector;
 var send = function(method, url, data, func) {
     $.ajax({
         type: method,
@@ -24,7 +25,7 @@ var submit_optimizer_request = function (request) {
 
 var es;
 var start_loading = function(storyline) {
-    es = new EventSource('/msg');
+    es = new EventSource('/msg?dataset=' + dataset_selector.val());
 
     es.onmessage = function (e) {
         //console.log(e);

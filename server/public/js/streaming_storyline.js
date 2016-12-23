@@ -4,12 +4,15 @@ function StreamingStoryline(container, config) {
     var that = this;
 
     that.time_shrink_ratio = 1;
+    that.vertical_shrink_ratio = 1;
     that.timeslice_space_min = 100;
     that.realtime2screentime = {};
     that.latest_time = - that.timeslice_space_min - 1;
     that.svg_width = $(container).width();
     that.svg_height = config.svg_height;
     that.margin_top = 30;
+    that.margin_bottom = 30;
+    that.height_max = 0;
     //that.screen_time_range = [0, 0];
     that.has_stoped = false;
     that.straighten = null;
@@ -234,10 +237,12 @@ StreamingStoryline.prototype.update = function(new_data) {
     }
 
     // incorporate new data into old data series
-    console.log(new_data);
+    //console.log(new_data);
+    //var height_max = 0;
     for (var i = 0; i < new_data.sessions.length; i++) {
         var session = new_data.sessions[i];
         _.each(session, function(v, k) {
+            that.height_max = Math.max(that.height_max, v);
             // v = v * time_shrink_ratio;
             if (DEBUG_MODE) {
                 if (stats[k]) {
@@ -276,6 +281,8 @@ StreamingStoryline.prototype.update = function(new_data) {
             stats[k] ++;
         });
     }
+    that.vertical_shrink_ratio = (that.svg_height - that.margin_bottom) / that.height_max;
+    //console.log(that.vertical_shrink_ratio);
 
     //if (DEBUG_MODE) {
     //    console.log(stats);
@@ -292,6 +299,7 @@ StreamingStoryline.prototype.update = function(new_data) {
 };
 
 StreamingStoryline.prototype._map2screen = function(p) {
+    var that = this;
     // TODO: apply fish-eye and rescale
     return {
         "time": p.time,

@@ -83,3 +83,7 @@ green {
 path.storyline {
     stroke-width: 3.5px;
 }
+
+.material-icons {
+    cursor: pointer;
+}

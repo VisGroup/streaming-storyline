@@ -18,11 +18,11 @@ def get_tasks():
         return "invalid"
     # print(request.args.get('current'))
     # print(request.args.get('preslice'))
-    result = compaction(current, preslice, CONFIG)
+    result = compaction(current, preslice, CONFIG, 0.01)
     return jsonify(result)
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=23334)
+    app.run(port=23334)
 
 

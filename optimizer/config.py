@@ -1,4 +1,4 @@
 CONFIG = {
-    "d-in": 5,
-    "d-out": 15
+    "d-in": 12,
+    "d-out": 36
 }

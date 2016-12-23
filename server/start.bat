@@ -1,1 +1,1 @@
-node app.js
+python ../optimizer/main.py | node app.js
