@@ -29,6 +29,9 @@ var replay_button = $("#replay");
 replay_button.addClass(grey_class);
 
 start_button.on("click", function () {
+    if (start_button.hasClass(grey_class)) {
+        return;
+    }
     console.log("start");
     if (stop_button.hasClass(grey_class))
         stop_button.toggleClass(grey_class);
@@ -39,6 +42,9 @@ start_button.on("click", function () {
     start_loading(storyline);
 });
 stop_button.on("click", function () {
+    if (stop_button.hasClass(grey_class)) {
+        return;
+    }
     if (!stop_button.hasClass(grey_class))
         stop_button.toggleClass(grey_class);
     if (replay_button.hasClass(grey_class))
@@ -48,6 +54,9 @@ stop_button.on("click", function () {
     storyline.stop_loading();
 });
 replay_button.on("click", function () {
+    if (replay_button.hasClass(grey_class)) {
+        return;
+    }
     if (stop_button.hasClass(grey_class))
         stop_button.toggleClass(grey_class);
     if (!replay_button.hasClass(grey_class))
