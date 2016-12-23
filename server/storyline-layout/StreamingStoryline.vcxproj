@@ -116,11 +116,15 @@
     <ClInclude Include="tools.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="storyline.cpp" />
     <ClCompile Include="StorylineDataSlice.cpp" />
     <ClCompile Include="StorylineLayout.cpp" />
     <ClCompile Include="StorylineSession.cpp" />
+    <ClCompile Include="main.cpp" />
     <ClCompile Include="test.cpp" />
+    <ClCompile Include="tools.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="data.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

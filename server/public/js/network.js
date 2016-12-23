@@ -16,6 +16,12 @@ var gintama = function(func) {// receive a data
     send('GET', '/gintama', {}, func);
 };
 
+var submit_optimizer_request = function (request) {
+    $.post("localhost:23334/tasks/optimizer", slice, function (result) {
+        storyline.update(result);
+    });
+};
+
 var es;
 var start_loading = function(storyline) {
     load_started = true;
@@ -31,5 +37,6 @@ var start_loading = function(storyline) {
         eval("slice=" + e.data);
         //console.log(slice.time);
         storyline.update(slice);
+        //submit_optimizer_request(slice);
     }
 };

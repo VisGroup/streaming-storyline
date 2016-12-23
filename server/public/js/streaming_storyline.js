@@ -9,16 +9,29 @@ function StreamingStoryline(container, config) {
     that.latest_time = -that.timeslice_space_min - 1;
     that.svg_width = $(container).width();
     that.svg_height = config.svg_height;
+    that.margin_top = 30;
     //that.screen_time_range = [0, 0];
     that.has_stoped = false;
     that.straighten = null;
+
+    that.translate_x = 0;
+    var drag = d3.behavior.drag()
+        .on("drag", function(d,i) {
+            //d.x += d3.event.dx;
+            that.translate_x += d3.event.dx;
+            //d.y += d3.event.dy;
+            that.svg.attr("transform", function(d,i){
+                return "translate(" + [ that.translate_x, 0 ] + ")"
+            })
+        });
 
     that.svg = d3.select(container).append("svg:svg")
         .attr("id", "storyline")
         .attr("height", that.svg_height)
         .attr("width", that.svg_width)
         .attr("preserveAspectRatio", "none")
-        .attr("viewBox", "0 0 " + that.svg_width + " " + that.svg_height);
+        .attr("viewBox", "0 " + (-that.margin_top) + " " + that.svg_width + " " + that.svg_height)
+        .call(drag);
 
     that.storyline_data = {
         "entities": {}, // name -> list of {time, height, type<anchor, extend>}
@@ -189,19 +202,19 @@ StreamingStoryline.prototype.update = function(new_data) {
     //    console.log("before", lengths.join(" "));
     //}
 
-    // extend old entity lines not mentioned in new time slice
-    for (var entity in _data.entities) {
-        var history_points = _data.entities[entity];
-        if (!_.has(new_data.entities, entity)) {
-            var prev_point = history_points[history_points.length - 1];
-            var nn = {
-                "time": time,
-                "height": prev_point.height
-            };
-            time_slice[entity] = nn;
-            history_points.push(nn);
-        }
-    }
+    //// extend old entity lines not mentioned in new time slice
+    //for (var entity in _data.entities) {
+    //    var history_points = _data.entities[entity];
+    //    if (!_.has(new_data.entities, entity)) {
+    //        var prev_point = history_points[history_points.length - 1];
+    //        var nn = {
+    //            "time": time,
+    //            "height": prev_point.height
+    //        };
+    //        time_slice[entity] = nn;
+    //        history_points.push(nn);
+    //    }
+    //}
 
     //if (DEBUG_MODE) {
     //    var lengths = [];
@@ -233,7 +246,7 @@ StreamingStoryline.prototype.update = function(new_data) {
             }
             var history_points = _data.entities[k];
             if (history_points.length == 0) {
-                if (DEBUG_MODE) {
+                if (DEBUG_MODE && Random_Layout) {
                     v = Math.random() * that.svg_height;
                 }
                 // the entity is newly added
@@ -245,7 +258,7 @@ StreamingStoryline.prototype.update = function(new_data) {
                 time_slice[k] = nn;
             } else {
                 var prev_point = history_points.pop();
-                if (DEBUG_MODE) {
+                if (DEBUG_MODE && Random_Layout) {
                     if (Math.random() < 0.65) {
                         v = prev_point.height;
                     } else {
@@ -400,8 +413,13 @@ StreamingStoryline.prototype.scrollTo = function(start, end, speed, select_statu
     h1 = -that.svg_height * speed / 2;
     h2 = that.svg_height * (1 + speed);
     that.svg.transition()
+// <<<<<<< HEAD
         .duration(select_status ? 80 : 1000)
         .attr("viewBox", view_start + " " + h1 + " " + (view_end - view_start) + " " + h2);
+// =======
+        // .duration(select_status ? 10 : 1000)
+        // .attr("viewBox", view_start + " " + (-that.margin_top) + " " + (view_end - view_start) + " " + that.svg_height);
+// >>>>>>> master
 
     //console.log(view_end - view_start);
 };

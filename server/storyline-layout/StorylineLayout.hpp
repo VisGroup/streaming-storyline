@@ -1,8 +1,8 @@
-﻿//
+//
 //  StorylineLayout.hpp
 //  Streaming-Storyline
 //
-//  Created by derekxiao on 2016/11/20.
+//  Created by 肖剑楠 on 2016/11/20.
 //
 //
 
@@ -15,17 +15,17 @@
 
 class StorylineLayout {
 public:
+	StorylineDataSlice preslice;
+	std::vector<StorylineSession> tempsession;
     StorylineLayout();
     ~StorylineLayout();
-public:
-    StorylineDataSlice * update(StorylineDataSlice * slice);
-private:
-    void ordering();
-    void aligning();
-    StorylineDataSlice * compressing();
-	StorylineDataSlice * prev;
-	StorylineDataSlice * curr;
+
+    StorylineDataSlice update(StorylineDataSlice &slice);
+public:             //change to public temporarily.
+	void classify(StorylineDataSlice &slice);
+    void ordering(StorylineDataSlice &slice);
+    void aligning(StorylineDataSlice &slice);
+	//StorylineDataSlice compressing();
 };
 
 #endif /* StorylineLayout_hpp */
-
