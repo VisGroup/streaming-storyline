@@ -12,8 +12,8 @@ function StreamingStoryline(container, config) {
     that.svg_height = config.svg_height;
     that.margin_top = 30;
     that.margin_bottom = 30;
-    that.height_min = Math.MAX_VALUE;
-    that.height_max = Math.MIN_VALUE;
+    that.height_min = that.svg_height;
+    that.height_max = - that.margin_top;
     //that.screen_time_range = [0, 0];
     that.has_stoped = false;
     that.straighten = null;
@@ -58,8 +58,9 @@ function StreamingStoryline(container, config) {
 
 StreamingStoryline.prototype._get_viewBox = function () {
     var that = this;
-    var viewBox_height = Math.max(that.svg_height, that.height_max - that.height_min) + that.margin_bottom + that.margin_top;
-    return that.view_start + " " + (-that.margin_top) + " " + (that.view_end - that.view_start) + " " + (viewBox_height);
+    var viewBox_height = Math.max(that.svg_height, that.height_max - that.height_min + that.margin_bottom + that.margin_top);
+    console.log( - that.margin_top + that.height_min, viewBox_height, that.height_min, that.height_max);
+    return that.view_start + " " + (- that.margin_top + that.height_min) + " " + (that.view_end - that.view_start) + " " + (viewBox_height);
 };
 
 /*
@@ -76,8 +77,8 @@ StreamingStoryline.prototype._get_viewBox = function () {
 
 StreamingStoryline.prototype._straighten_shift = function() {
     var that = this;
-    that.height_min = Math.MAX_VALUE;
-    that.height_max = Math.MIN_VALUE;
+    that.height_min = that.svg_height;
+    that.height_max = - that.margin_top;
     var straighten_shifts = that.storyline_data.straighten_shifts;
     for (var time in straighten_shifts) {
         var shift = straighten_shifts[time];
@@ -97,8 +98,8 @@ StreamingStoryline.prototype._straighten_shift = function() {
 
 StreamingStoryline.prototype._straighten_unshift = function() {
     var that = this;
-    that.height_min = Math.MAX_VALUE;
-    that.height_max = Math.MIN_VALUE;
+    that.height_min = that.svg_height;
+    that.height_max = - that.margin_top;
     var straighten_shifts = that.storyline_data.straighten_shifts;
     for (var time in straighten_shifts) {
         var shift = straighten_shifts[time];
@@ -268,6 +269,7 @@ StreamingStoryline.prototype.update = function(new_data) {
         var session = new_data.sessions[i];
         _.each(session, function(v, k) {
             that.height_max = Math.max(that.height_max, v);
+            that.height_min = Math.min(that.height_min, v);
             // v = v * time_shrink_ratio;
             if (DEBUG_MODE) {
                 if (stats[k]) {
@@ -423,8 +425,8 @@ StreamingStoryline.prototype._draw = function() {
         .ease('linear')
         .attr("viewBox", that._get_viewBox());
     this.drawEntitiesLabels();
-    drawMinimap();
-
+    //drawMinimap();
+    setTimeout(drawMinimap, 250);
 };
 
 // for Debug use
@@ -469,7 +471,7 @@ StreamingStoryline.prototype.drawEntitiesLabels = function() {
         $('#chip' + i).css('color', that.color(i));
         $('#chip' + i).text(getEntityName(i));
     }
-    console.log(heights);
+    //console.log(heights);
 };
 
 StreamingStoryline.prototype.scrollTo = function(start, end, speed, select_status) {
@@ -513,7 +515,7 @@ StreamingStoryline.prototype.restoreNormalHeight = function() {
     setTimeout(that.drawEntitiesLabels, 300);
 };
 
-// 返回当前可视部分对应的minimap的中心、宽度的像素数
+// 返回当前可视部分对应的minimap的中心�?�宽度的像素�?
 StreamingStoryline.prototype.getMinimapCenterWidth = function() {
     var that = this;
     var view = $('#storyline')[0].viewBox.baseVal;
