@@ -132,8 +132,17 @@ function submit_get_request (url, para, callback) {
     //console.log(u);
     http.request(u, handler).end();
 }
+//
+//var DatasetMap = {
+//    "The Matrix": "TheMatrix",
+//    "Inception": "Inception",
+//    "Star Wars": "StarWars"
+//};
+//
+//var CurrentDataset = "The Matrix";
 
 function getMsg(req, res) {
+    //console.log(req);
     console.log("get msg");
     res.writeHead(200, {
         "Content-Type": "text/event-stream",
@@ -141,18 +150,17 @@ function getMsg(req, res) {
         "Connection": "keep-alive"
     });
     //console.log(23333);
-
-    var data_all = parseTxtData('movie_data/StarWars_interaction_sessions.txt');
+    console.log(req.query["dataset"]);
+    var data_all = parseTxtData('movie_data/' + req.query["dataset"] + '_interaction_sessions.txt');
 
     var time = 0;
 
     var child_executable = platform == "win32" ? "Debug/StreamingStoryline.exe" : "gintama";
-    var optimizer_executable = "python ../optimizer/main.py";
+    //var optimizer_executable = "python ../optimizer/main.py";
     var child = spawn('storyline-layout/' + child_executable);
     var preslice = "{}";
     child.stdout.on('data', function(data) {
-        //console.log("response", data.toString());
-        console.log("1", data.toString());
+        //console.log("1", data.toString());
         if (data == "\r\n") {
             return;
         }
@@ -167,21 +175,20 @@ function getMsg(req, res) {
             }
             response = response.replace(/[ \t\n\r]+/g, '');
             res.write("data:" + response + "\n\n");
-            console.log("response\t" + response + "\n\n");
+            //console.log("response\t" + response + "\n\n");
             preslice = response;
             setTimeout(timer, 200);
         });
-        //var optimizer_child = spawn(optimizer_executable + ' "' + data.toString() + '"');
-        //var result = '';
-        //optimizer_child.stdout.on('data', function(_d) {
-        //    //result += _d.toString();
-        //    res.write("data:" + _d + "\n\n");
-        //});
-        //optimizer_child.on('close', function () {
-        //    res.write("data:" + result + "\n\n");//});
     });
 
     var timer = function() {
+        if (data_all.events[time] == undefined) {
+            child.stdin.write('#\n');
+            child.stdin.end();
+            res.write("data:over\n\n");
+            console.log("finish");
+            return;
+        }
         var str = time + ' ';
         var len = data_all.events[time].length;
         var visited = {};
@@ -202,7 +209,7 @@ function getMsg(req, res) {
             str += JSON.stringify(unvisited).split(/[\[\]]/)[1];
             str += ' ';
         }
-        console.log("time", time);
+        //console.log("time", time);
         //console.log("input", str);
         child.stdin.write(str + '\n');
         time++;
@@ -210,14 +217,6 @@ function getMsg(req, res) {
         //    clearInterval(timer);
         //    return;
         //}
-
-        if (data_all.events[time] == undefined) {
-            child.stdin.write('#\n');
-            child.stdin.end();
-            res.write("data:over\n\n");
-            console.log("finish");
-            //clearInterval(timer);
-        }
     };
     timer();
 }

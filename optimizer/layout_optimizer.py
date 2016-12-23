@@ -53,7 +53,7 @@ def optimize(Q, c, A, b, numvar, numcon, objsense):
 		return solsta
 
 
-def compaction(current, preslice, config):
+def compaction(current, preslice, config, alpha=1):
 	has_precendent = "time" in preslice
 	current_order, current_session = convert_format(current)
 	if has_precendent:
@@ -77,7 +77,7 @@ def compaction(current, preslice, config):
 	for i in range(numvar):
 		qsubi.append(i)
 		qsubj.append(i)
-		qval.append(1.)
+		qval.append(alpha)
 		c.append(0.)
 
 	if has_precendent:

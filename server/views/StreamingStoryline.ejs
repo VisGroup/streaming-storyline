@@ -15,7 +15,7 @@
 <body>
 	<div class="navbar-fixed">
 		<nav class="teal">
-			<div class="nav-wrapper container">
+			<div class="nav-wrapper container row">
 				<!-- logo -->
 				<a class="brand-logo">
 					<!-- <h2> -->
@@ -23,23 +23,17 @@
 					<!-- </h2> -->
 				</a>
 				<!-- 顶部navbar右侧的按钮     -->
-				<ul class="right hide-on-small-only">
-					<li class="hide-on-med-and-down">
-						<a href="">
-							Jiannan Xiao
-						</a>
-					</li>
-					<li class="hide-on-med-and-down">
-						<a href="">
-							Qian Ren
-						</a>
-					</li>
-					<li class="hide-on-med-and-down">
-						<a href="">
-							Bowei Zhou
-						</a>
-					</li>
-				</ul>
+				<i id="replay" class="right hide-on-med-and-down material-icons">replay</i>
+				<i id="stop" class="right hide-on-med-and-down material-icons">stop</i>
+				<i id="play" class="right hide-on-med-and-down material-icons">play_circle_outline</i>
+				<div class="right input-field col s4">
+					<select id="dataset-selector">
+						<!--<option value="Inception" disabled selected>Datasets</option>-->
+						<option value="Inception" selected>Inception</option>
+						<option value="StarWars">Start Wars</option>
+						<option value="TheMatrix">The Matrix</option>
+					</select>
+				</div>
 			</div>
 		</nav>
 	</div>
@@ -82,8 +76,8 @@
 			</div>
 		</div>
 	</main>
-	<a id="loading-start" class="btn">start data transfering</a>
-	<a id="loading-stop" class="btn">stop data transfering (Debug use)</a>
+	<!--<a id="loading-start" class="btn">start data transfering</a>-->
+	<!--<a id="loading-stop" class="btn">stop data transfering (Debug use)</a>-->
 
 
 	<script type="text/javascript" src="js/jquery-2.1.3.min.js"></script>
