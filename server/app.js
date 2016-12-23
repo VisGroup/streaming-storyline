@@ -168,7 +168,7 @@ function getMsg(req, res) {
             "preslice": preslice,
             "current": data.toString()
         };
-        submit_get_request("http://localhost:23334/tasks/optimizer", req, function (response) {
+        submit_get_request("http://166.111.81.52:23334/tasks/optimizer", req, function (response) {
             //eval("response=" + response);
             if (response == "invalid") {
                 return;

@@ -8,7 +8,7 @@ var width_graybox = 150;
 var width_orangebox = 150;
 
 var masks = $('.mm_mask');
-masks.click(mm_click_event);
+// masks.click(mm_click_event);
 masks.mousemove(mm_move_event);
 masks.mouseleave(mm_leave_event);
 masks.mousedown(mm_down_event);
@@ -54,15 +54,16 @@ function drawSelectBox(selector, position, width, update) {
         left = 0;
     }
     var w = $('.mm_mask').width();
-    if (left + width > w) {
-        width = w - left;
-    }
-    $(selector).css('opacity', '0.5').css('left', left + 'px').css('width', width + 'px');
+
     update_data = (update == true);
     if (update) {
         minimap_select_center = left + width / 2;
         minimap_select_width = width;
     }
+    if (left + width > w) {
+        width = w - left;
+    }
+    $(selector).css('opacity', '0.5').css('left', left + 'px').css('width', width + 'px');
 }
 
 function hideSelectBox(selector) {
@@ -141,7 +142,7 @@ function mm_move_event(e) {
 
 function update_storyline_view(center, width, speed) {
     // console.log(speed); // speed[0]--center的速度， speed[1]--width的改变速度
-    var actual_minimap_width = minimap_width - width;
+    var actual_minimap_width = minimap_width;// - width / 2;
     // console.log(center, width);
     storyline.scrollTo(
         (center - width / 2) / actual_minimap_width, // start
@@ -164,45 +165,51 @@ function update_minimap_view() {
 
 }
 
-function mm_click_event(e) {
-    return;
-    // if (e.which == 3) {
-    //     if (select_status >= 0) {
-    //         offset = e.offsetX / $('.mm_top_line').width();
-    //         var mousetime = (ed_now - st_now) * offset + st_now;
-    //         select_status = -1;
-    //         $('.mm_select_box').css('display', 'block').css('left', e.offsetX).css('width', 0);
-    //         mm_send(mousetime);
-    //     } else {
-    //         select_status = 0;
-    //         $('.mm_select_box').css('display', 'none').css('left', e.offsetX).css('width', 0);
-    //     }
-    //     return false;
-    // }
-    // switch (select_status) {
-    //     case 0:
-    //         select_status = 1;
-    //         $('.mm_select_box').css('display', 'block')
-    //             .css('left', offset + 'px');
-    //         first_click = offset;
-    //         break;
-    //     case 1:
-    //         select_status = 2;
-    //         if (e.offsetX < first_click) {
-    //             $('.mm_select_box').css('left', e.offsetX).css('width', first_click - e.offsetX);
-    //         } else {
-    //             $('.mm_select_box').css('left', first_click).css('width', -first_click + e.offsetX);
-    //         }
-    //         var o1 = first_click / $('.mm_top_line').width();
-    //         var o2 = offset / $('.mm_top_line').width();
-    //         var t1 = (ed_now - st_now) * o1 + st_now;
-    //         var t2 = (ed_now - st_now) * o2 + st_now;
-    //         mm_send(t1, t2);
-    //         break;
-    //     case 2:
-    //     case -1:
-    //         select_status = 0;
-    //         $('.mm_select_box').css('display', 'none');
-    //         break;
-    // }
+var ctx = $('#minimap')[0].getContext('2d');
+var canvas_width = 2000;
+var canvas_height = 100;
+
+function drawMinimap() {
+    var data = storyline.storyline_data;
+    var es = storyline.storyline_data.entities;
+    var range = data.range[1];
+    var minh = 1e30;
+    var maxh = 0;
+    for (var j in es) {
+        var entity = es[j];
+        entity.forEach(function(e, i) {
+            minh = Math.min(minh, e.height);
+            maxh = Math.max(maxh, e.height);
+        });
+    }
+    minh -= 5;
+    maxh += 5;
+    ctx.clearRect(0, 0, canvas_width, canvas_height);
+    for (var j in es) {
+        var oldx = undefined;
+        var oldy = undefined;
+        var old_time = 0;
+        ctx.beginPath();
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = storyline.color(j);
+        var entity = es[j];
+
+        entity.forEach(function(e, i) {
+            var x = e.time / range * canvas_width;
+            var y = (e.height - minh) / (maxh - minh) * canvas_height;
+            if (oldx != undefined && oldy != undefined) {
+                if (e.time - old_time > 100) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            } else {
+                ctx.moveTo(x, y);
+            }
+            oldx = x;
+            oldy = y;
+            old_time = e.time;
+        });
+        ctx.stroke();
+    }
 }

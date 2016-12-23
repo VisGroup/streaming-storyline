@@ -17,14 +17,17 @@ function StreamingStoryline(container, config) {
     that.has_stoped = false;
     that.straighten = null;
 
+    that.view_start = 0;
+    that.view_end = that.svg_width;
+
     that.translate_x = 0;
     var drag = d3.behavior.drag()
-        .on("drag", function(d,i) {
+        .on("drag", function(d, i) {
             //d.x += d3.event.dx;
             that.translate_x += d3.event.dx;
             //d.y += d3.event.dy;
-            that.svg.attr("transform", function(d,i){
-                return "translate(" + [ that.translate_x, 0 ] + ")"
+            that.svg.attr("transform", function(d, i) {
+                return "translate(" + [that.translate_x, 0] + ")"
             })
         });
 
@@ -129,6 +132,7 @@ StreamingStoryline.prototype.straighten_by = function(d) {
     }
 
     that._draw();
+
 };
 
 StreamingStoryline.prototype._get_entities = function(new_data) {
@@ -324,16 +328,21 @@ StreamingStoryline.prototype._draw_entity = function(history_points) {
         return d + "L" + (start.time + control_point_shift) + "," + start.height;
     }
     //d = "M" + (prev.time) + "," + (prev.height);
-
+    var line_break = false;
     for (var i = 1; i < point_count; i++) {
         var prev = history_points[i - 1];
         var p = history_points[i];
+        if (p.time - prev.time > 100) {
+            line_break = true;
+            continue;
+        }
         var ap =
             //"M" + (prev.time) + "," + (prev.height) +
-            "C" + (prev.time + control_point_shift) + "," + (prev.height) + "," +
+            (line_break ? "M" : "C") + (prev.time + control_point_shift) + "," + (prev.height) + "," +
             (p.time - control_point_shift) + "," + (p.height) + "," +
             (p.time) + "," + (p.height);
         d += ap;
+        if (line_break) line_break = false;
     }
     // console.log(d);
     return d;
@@ -388,14 +397,58 @@ StreamingStoryline.prototype._draw = function() {
         .on("click", function(d) {
             console.log(d, "click");
             that.straighten_by.call(that, d);
+            Materialize.toast("Entity " + getEntityName(d) + " selected", 1000);
         });
+
+    this.drawEntitiesLabels();
+    drawMinimap();
+
 };
 
 // for Debug use
 StreamingStoryline.prototype.stop_loading = function() {
     var that = this;
     that.has_stoped = true;
-};
+}
+
+StreamingStoryline.prototype.drawEntitiesLabels = function() {
+    var that = this;
+    // console.log("that.view_start", that.view_start);
+    var t = that.view_start;
+    var time = Math.floor(t / 100) * 100;
+    var s = (t - time) / 100;
+    var slices = storyline.storyline_data.time_slices;
+    var slice0 = slices[time];
+    var slice1 = slices[time + 100];
+    if (slice1 == undefined) slice1 = slice0;
+    var heights = {};
+    for (var i in slice0) {
+        if (heights[i] == undefined) heights[i] = {};
+        heights[i].t1 = slice0[i].height;
+    }
+    for (var i in slice1) {
+        if (heights[i] == undefined) heights[i] = {};
+        heights[i].t2 = slice1[i].height;
+    }
+    var view = $('#storyline')[0].viewBox.baseVal;
+    for (var i = 0; i < 20; i++) {
+        $('#chip' + i).css('display', 'none');
+    }
+    for (var i in heights) {
+        var t1 = heights[i].t1;
+        var t2 = heights[i].t2;
+        if (t1 == undefined) t1 = t2;
+        if (t2 == undefined) t2 = t1;
+        var tmp = t1 + (t2 - t1) * s;
+        tmp = (tmp - view.y) / view.height * that.svg_height;
+        heights[i] = tmp;
+        $('#chip' + i).css('top', heights[i] - 16 + 'px');
+        $('#chip' + i).css('display', 'block');
+        $('#chip' + i).css('color', that.color(i));
+        $('#chip' + i).text(getEntityName(i));
+    }
+    console.log(heights);
+}
 
 StreamingStoryline.prototype.scrollTo = function(start, end, speed, select_status) {
     var that = this;
@@ -404,9 +457,9 @@ StreamingStoryline.prototype.scrollTo = function(start, end, speed, select_statu
     if (data_time_length <= that.svg_width) {
         return;
     }
-    var view_start = data_time_length * start + data_time_range[0];
-    var view_end = data_time_length * end + data_time_range[0];
-    console.log(view_start, view_end, start, end, data_time_length, data_time_range);
+    that.view_start = data_time_length * start + data_time_range[0];
+    that.view_end = data_time_length * end + data_time_range[0];
+    // console.log(view_start, view_end, start, end, data_time_length, data_time_range);
     // speed = Math.sqrt(Math.abs(speed / 3));
     // speed -= 1;
     // speed = Math.max(0, speed);
@@ -421,15 +474,16 @@ StreamingStoryline.prototype.scrollTo = function(start, end, speed, select_statu
     h1 = -that.svg_height * speed / 2;
     h2 = that.svg_height * (1 + speed);
     that.svg.transition()
-// <<<<<<< HEAD
+        // <<<<<<< HEAD
         .duration(select_status ? 80 : 1000)
-        .attr("viewBox", view_start + " " + h1 + " " + (view_end - view_start) + " " + h2);
-// =======
-        // .duration(select_status ? 10 : 1000)
-        // .attr("viewBox", view_start + " " + (-that.margin_top) + " " + (view_end - view_start) + " " + that.svg_height);
-// >>>>>>> master
+        .attr("viewBox", that.view_start + " " + h1 + " " + (that.view_end - that.view_start) + " " + h2);
+    // =======
+    // .duration(select_status ? 10 : 1000)
+    // .attr("viewBox", view_start + " " + (-that.margin_top) + " " + (view_end - view_start) + " " + that.svg_height);
+    // >>>>>>> master
 
     //console.log(view_end - view_start);
+    that.drawEntitiesLabels();
 };
 
 StreamingStoryline.prototype.restoreNormalHeight = function() {
@@ -439,6 +493,7 @@ StreamingStoryline.prototype.restoreNormalHeight = function() {
         .duration(300)
         .ease('linear')
         .attr("viewBox", view.x + " " + 0 + " " + view.width + " " + that.svg_height);
+    setTimeout(that.drawEntitiesLabels, 300);
 }
 
 // 返回当前可视部分对应的minimap的中心、宽度的像素数

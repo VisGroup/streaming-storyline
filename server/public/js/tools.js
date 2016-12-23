@@ -8,3 +8,7 @@ var hashcode = function() {
     }
     return hash;
 };
+
+function getEntityName(entity_name) {
+    return names[dataset_selector.val()][entity_name];
+}
