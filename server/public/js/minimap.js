@@ -1,4 +1,7 @@
-var select_status = 0;
+var load_started = false;
+var select_status = false;
+var mousein_status = false;
+var update_data = false;
 var first_click;
 
 var width_graybox = 150;
@@ -14,23 +17,37 @@ masks[0].onmousewheel = mm_scroll_event;
 var minimap_width = masks.width();
 var minimap_height = masks.height();
 
-var last_center = [];
-var last_width = [];
+var cursor_pos_list = [];
+var cursor_pos = null;
+var minimap_select_center;
+var minimap_select_width;
+
+var mouse_timer = setInterval(function() {
+    if (!load_started) return;
+    if (cursor_pos != null) {
+        cursor_pos_list.push(cursor_pos);
+    }
+    if (cursor_pos_list.length > 7) {
+        cursor_pos_list.splice(0, 1);
+    }
+    if (update_data && minimap_select_center && minimap_select_width) {
+        update_storyline_view(minimap_select_center, minimap_select_width, getSpeed());
+    }
+    // if (!update_data) {
+    //     update_minimap_view();
+    // }
+}, 1000 / 60);
 
 function getSpeed() {
-    speed = [0, 0];
-    var l = last_center.length;
+    speed = 0;
+    var l = cursor_pos_list.length;
     if (!l) return speed;
-    speed[0] = (last_center[l - 1] - last_center[0]) / l;
-    speed[1] = (last_width[l - 1] - last_width[0]) / l;
-    if (l >= 10) {
-        last_center.splice(0, 1);
-        last_width.splice(0, 1);
-    }
+    speed = (cursor_pos_list[l - 1] - cursor_pos_list[0]) / l;
     return speed;
 }
 
-function drawSelectBox(selector, position, width, update_data) {
+function drawSelectBox(selector, position, width, update) {
+    // console.log(position, width);
     var left = position - width / 2;
     if (left < 0) {
         width += left;
@@ -41,13 +58,10 @@ function drawSelectBox(selector, position, width, update_data) {
         width = w - left;
     }
     $(selector).css('opacity', '0.5').css('left', left + 'px').css('width', width + 'px');
-    if (update_data) {
-        // console.log(left, left + width);
-        var center = left + width / 2;
-        last_center.push(center);
-        last_width.push(width);
-        var speed = getSpeed();
-        update_storyline_view(left + width / 2, width, speed);
+    update_data = (update == true);
+    if (update) {
+        minimap_select_center = left + width / 2;
+        minimap_select_width = width;
     }
 }
 
@@ -56,6 +70,7 @@ function hideSelectBox(selector) {
 }
 
 function mm_down_event(e) {
+    if (!load_started) return;
     var offset = e.offsetX;
     select_status = 1;
     width_orangebox = width_graybox;
@@ -64,19 +79,22 @@ function mm_down_event(e) {
 }
 
 function mm_up_event(e) {
+    if (!load_started) return;
     var offset = e.offsetX;
     select_status = 0;
     width_orangebox = width_graybox;
 
     drawSelectBox('.mm_orange', offset, width_orangebox, true);
-    last_center = [];
-    last_width = [];
+    update_data = false;
+    storyline.restoreNormalHeight();
+
     // hideSelectBox('.mm_gray');
     //console.log("up", offset, width_orangebox);
     // update_storyline_view(offset, width_orangebox);
 }
 
 function mm_scroll_event(e) {
+    if (!load_started) return;
     var offset = e.offsetX;
     // console.log(e.wheelDeltaY);
     var delta = -e.wheelDeltaY / 40;
@@ -96,14 +114,19 @@ function mm_scroll_event(e) {
 }
 
 function mm_leave_event() {
+    mousein_status = false;
+    if (!load_started) return;
     select_status = 0;
-    last_width = [];
-    last_center = [];
+    update_data = false;
+    storyline.restoreNormalHeight();
     hideSelectBox('.mm_gray');
 }
 
 function mm_move_event(e) {
+    mousein_status = true;
+    if (!load_started) return;
     var offset = e.offsetX;
+    cursor_pos = offset;
     //if (offset < width_graybox / 2 || offset + width_graybox / 2 > minimap_width) {
     //	return;
     //}
@@ -116,15 +139,29 @@ function mm_move_event(e) {
     }
 }
 
-function update_storyline_view(center, width_orangebox, speed) {
-    console.log(speed); // speed[0]--center的速度， speed[1]--width的改变速度
-    var actual_minimap_width = minimap_width - width_orangebox;
+function update_storyline_view(center, width, speed) {
+    // console.log(speed); // speed[0]--center的速度， speed[1]--width的改变速度
+    var actual_minimap_width = minimap_width - width;
+    // console.log(center, width);
     storyline.scrollTo(
-        (center - width_orangebox / 2) / actual_minimap_width, // start
-        (center + width_orangebox / 2) / actual_minimap_width, // end
-        speed[0], // speed
+        (center - width / 2) / actual_minimap_width, // start
+        (center + width / 2) / actual_minimap_width, // end
+        speed, // speed
         select_status
     );
+}
+
+function update_minimap_view() {
+    var cw = storyline.getMinimapCenterWidth();
+    if (cw[1] > 1) return width;
+    var center = cw[0] * minimap_width;
+    var width = cw[1] * minimap_width;
+    if (!width || !center) return width;
+    // console.log(center, width);
+    width_orangebox = width;
+    width_graybox = width;
+    drawSelectBox('.mm_orange', center, width, false);
+
 }
 
 function mm_click_event(e) {

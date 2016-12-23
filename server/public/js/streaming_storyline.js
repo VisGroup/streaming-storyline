@@ -6,7 +6,7 @@ function StreamingStoryline(container, config) {
     that.time_shrink_ratio = 1;
     that.timeslice_space_min = 100;
     that.realtime2screentime = {};
-    that.latest_time = - that.timeslice_space_min - 1;
+    that.latest_time = -that.timeslice_space_min - 1;
     that.svg_width = $(container).width();
     that.svg_height = config.svg_height;
     //that.screen_time_range = [0, 0];
@@ -44,7 +44,7 @@ function StreamingStoryline(container, config) {
 }
 */
 
-StreamingStoryline.prototype._straighten_shift = function () {
+StreamingStoryline.prototype._straighten_shift = function() {
     var that = this;
     var straighten_shifts = that.storyline_data.straighten_shifts;
     for (var time in straighten_shifts) {
@@ -60,7 +60,7 @@ StreamingStoryline.prototype._straighten_shift = function () {
     console.log("shift");
 };
 
-StreamingStoryline.prototype._straighten_unshift = function () {
+StreamingStoryline.prototype._straighten_unshift = function() {
     var that = this;
     var straighten_shifts = that.storyline_data.straighten_shifts;
     for (var time in straighten_shifts) {
@@ -76,7 +76,7 @@ StreamingStoryline.prototype._straighten_unshift = function () {
     console.log("unshift");
 };
 
-StreamingStoryline.prototype.straighten_by = function (d) {
+StreamingStoryline.prototype.straighten_by = function(d) {
     var that = this;
 
     if (that.straighten != null) {
@@ -89,13 +89,13 @@ StreamingStoryline.prototype.straighten_by = function (d) {
         // get average height of entity d
         var history_points = that.storyline_data.entities[d];
         var sum = 0;
-        for (var i = 0; i < history_points.length; i ++) {
+        for (var i = 0; i < history_points.length; i++) {
             sum += history_points[i].height;
         }
         var average_height = sum / history_points.length;
 
         // get shifts of each time points
-        for (var i = 0; i < history_points.length; i ++) {
+        for (var i = 0; i < history_points.length; i++) {
             var time = history_points[i].time;
             straighten_shifts[time] = average_height - history_points[i].height;
         }
@@ -115,9 +115,9 @@ StreamingStoryline.prototype.straighten_by = function (d) {
     that._draw();
 };
 
-StreamingStoryline.prototype._get_entities = function (new_data) {
+StreamingStoryline.prototype._get_entities = function(new_data) {
     var entities = d3.set();
-    for (var i = 0; i < new_data.sessions.length; i ++) {
+    for (var i = 0; i < new_data.sessions.length; i++) {
         var s = new_data.sessions[i];
         for (var k in s) {
             entities.add(k);
@@ -260,7 +260,7 @@ StreamingStoryline.prototype.update = function(new_data) {
                 time_slice[k] = nn;
                 history_points.push(nn);
             }
-            stats[k] ++;
+            stats[k]++;
         });
     }
 
@@ -276,6 +276,9 @@ StreamingStoryline.prototype.update = function(new_data) {
     //}
     that.storyline_data.time_slices[time] = time_slice;
     this._draw();
+    if (!mousein_status) {
+        update_minimap_view();
+    }
 };
 
 StreamingStoryline.prototype._map2screen = function(p) {
@@ -328,52 +331,52 @@ StreamingStoryline.prototype._draw = function() {
             return entity_name;
         })
         .attr("class", "storyline");
-        // .classed("storyline")
+    // .classed("storyline")
     ;
     that.storylines.exit().remove();
 
     that.storylines
-        .attr("id", function (entity_name) {
+        .attr("id", function(entity_name) {
             return "entity-" + entity_name;
         })
         .transition()
         .duration(500)
-        .attr("d", function (entity_name) {
+        .attr("d", function(entity_name) {
             var hps = that.storyline_data.entities[entity_name];
             return that._draw_entity.call(that, hps);
         })
-        .style("stroke", function (entity_name) {
+        .style("stroke", function(entity_name) {
             return that.color(entity_name);
         });
     that.storylines
         // .each(function (entity_name) {
         //     d3.select("#entity-" + entity_name).call(cc);
         // })
-        .on("mouseover", function (d) {
+        .on("mouseover", function(d) {
             // console.log("mouseover");
             var e = d3.select("#entity-" + d);
             // e.style("filter", "url(#filter1)");
             e.style("stroke-width", "5px");
         })
-        .on("mouseout", function (d) {
+        .on("mouseout", function(d) {
             // console.log("mouseout");
             var e = d3.select("#entity-" + d);
             // e.style("filter", "");
             e.style("stroke-width", "3.5px");
         })
-        .on("click", function (d) {
+        .on("click", function(d) {
             console.log(d, "click");
             that.straighten_by.call(that, d);
         });
 };
 
 // for Debug use
-StreamingStoryline.prototype.stop_loading = function () {
+StreamingStoryline.prototype.stop_loading = function() {
     var that = this;
     that.has_stoped = true;
 };
 
-StreamingStoryline.prototype.scrollTo = function (start, end, speed, select_status) {
+StreamingStoryline.prototype.scrollTo = function(start, end, speed, select_status) {
     var that = this;
     var data_time_range = that.storyline_data.range;
     var data_time_length = data_time_range[1] - data_time_range[0];
@@ -382,9 +385,45 @@ StreamingStoryline.prototype.scrollTo = function (start, end, speed, select_stat
     }
     var view_start = data_time_length * start + data_time_range[0];
     var view_end = data_time_length * end + data_time_range[0];
+    console.log(view_start, view_end, start, end, data_time_length, data_time_range);
+    // speed = Math.sqrt(Math.abs(speed / 3));
+    // speed -= 1;
+    // speed = Math.max(0, speed);
+    speed = Math.abs(speed);
+    if (speed < 10) {
+        speed = Math.pow(speed / 10, 2);
+    } else {
+        speed = Math.pow(speed / 10, 0.5);
+    }
+
+    var h1, h2;
+    h1 = -that.svg_height * speed / 2;
+    h2 = that.svg_height * (1 + speed);
     that.svg.transition()
-        .duration(select_status ? 10 : 1000)
-        .attr("viewBox", view_start + " 0 " + (view_end - view_start) + " " + that.svg_height);
+        .duration(select_status ? 80 : 1000)
+        .attr("viewBox", view_start + " " + h1 + " " + (view_end - view_start) + " " + h2);
 
     //console.log(view_end - view_start);
 };
+
+StreamingStoryline.prototype.restoreNormalHeight = function() {
+    var that = this;
+    var view = $('#storyline')[0].viewBox.baseVal;
+    that.svg.transition()
+        .duration(300)
+        .ease('linear')
+        .attr("viewBox", view.x + " " + 0 + " " + view.width + " " + that.svg_height);
+}
+
+// 返回当前可视部分对应的minimap的中心、宽度的像素数
+StreamingStoryline.prototype.getMinimapCenterWidth = function() {
+    var that = this;
+    var view = $('#storyline')[0].viewBox.baseVal;
+    var view_start = view.x;
+    var view_end = view.width + view_start;
+    var data_time_range = that.storyline_data.range;
+    var data_time_length = data_time_range[1] - data_time_range[0];
+    var start = (view_start - data_time_range[0]) / data_time_length;
+    var end = (view_end - data_time_range[0]) / data_time_length;
+    return [(end + start) / 2, end - start];
+}

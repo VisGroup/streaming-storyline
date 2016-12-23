@@ -1,5 +1,5 @@
 var config = {
-	height: 400
+	height: 300
 };
 
 var DEBUG_MODE = true;

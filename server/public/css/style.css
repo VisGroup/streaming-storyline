@@ -80,6 +80,15 @@ green {
     background-color: lightgray;
     top: 0%;
 }
+.mm_select_box.mm_gray_debug {
+    border-left: 3px solid gray;
+    border-right: 3px solid gray;
+    background-color: lightgray;
+    width:100%;
+    top: -200%;
+    opacity: 0.5;
+    left:0; /*需要把mm_mask的top改回到-200!!!*/
+}
 path.storyline {
     stroke-width: 3.5px;
 }

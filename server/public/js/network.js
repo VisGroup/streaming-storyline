@@ -18,6 +18,7 @@ var gintama = function(func) {// receive a data
 
 var es;
 var start_loading = function(storyline) {
+    load_started = true;
     es = new EventSource('/msg');
 
     es.onmessage = function (e) {
