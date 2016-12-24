@@ -427,13 +427,16 @@ StreamingStoryline.prototype._draw = function() {
             that.straighten_by.call(that, d);
             Materialize.toast("Entity " + getEntityName(d) + " selected", 1000);
         });
-    that.svg.transition()
+    that.svg
+        .transition()
         .duration(300)
         .ease('linear')
         .attr("viewBox", that._get_viewBox());
-    this.drawEntitiesLabels();
     //drawMinimap();
-    setTimeout(drawMinimap, 250);
+    setTimeout(function () {
+        that.drawEntitiesLabels.call(that);
+        drawMinimap();
+    }, 300);
 };
 
 // for Debug use
@@ -559,7 +562,9 @@ StreamingStoryline.prototype.restoreNormalHeight = function() {
         .duration(300)
         .ease('linear')
         .attr("viewBox", that._get_viewBox());
-    setTimeout(that.drawEntitiesLabels, 300);
+    setTimeout(function () {
+        that.drawEntitiesLabels.call(that);
+    }, 300);
 };
 
 // 返回当前可视部分对应的minimap的中心、宽度的像素数
