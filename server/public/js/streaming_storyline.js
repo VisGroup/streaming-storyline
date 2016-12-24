@@ -36,6 +36,8 @@ function StreamingStoryline(container, config) {
             })
         });
 
+    that.entity_names_container = d3.select(container).append("div")
+        .attr("id", "chips");
     that.svg = d3.select(container).append("svg:svg")
         .attr("id", "storyline")
         .attr("height", that.svg_height)
@@ -56,10 +58,15 @@ function StreamingStoryline(container, config) {
     that.storylines = that.svg.append("svg:g").selectAll("path.storyline");
 }
 
+StreamingStoryline.prototype._get_viewBox_height = function () {
+    var that = this;
+    return Math.max(that.svg_height, that.height_max - that.height_min + that.margin_bottom + that.margin_top);
+};
+
 StreamingStoryline.prototype._get_viewBox = function () {
     var that = this;
-    var viewBox_height = Math.max(that.svg_height, that.height_max - that.height_min + that.margin_bottom + that.margin_top);
-    console.log( - that.margin_top + that.height_min, viewBox_height, that.height_min, that.height_max);
+    var viewBox_height = that._get_viewBox_height();
+    //console.log( - that.margin_top + that.height_min, viewBox_height, that.height_min, that.height_max);
     return that.view_start + " " + (- that.margin_top + that.height_min) + " " + (that.view_end - that.view_start) + " " + (viewBox_height);
 };
 
@@ -361,8 +368,8 @@ StreamingStoryline.prototype._draw_entity = function(history_points) {
         }
         var ap =
             //"M" + (prev.time) + "," + (prev.height) +
-            (line_break ? "M" : "C") + (prev.time + control_point_shift) + "," + (prev.height) + "," +
-            (p.time - control_point_shift) + "," + (p.height) + "," +
+            (line_break ? "M" : "C" + (prev.time + control_point_shift) + "," + (prev.height) + "," +
+            (p.time - control_point_shift) + "," + (p.height) + ",") +
             (p.time) + "," + (p.height);
         d += ap;
         if (line_break) line_break = false;
@@ -433,7 +440,7 @@ StreamingStoryline.prototype._draw = function() {
 StreamingStoryline.prototype.stop_loading = function() {
     var that = this;
     that.has_stoped = true;
-}
+};
 
 StreamingStoryline.prototype.drawEntitiesLabels = function() {
     var that = this;
@@ -455,9 +462,10 @@ StreamingStoryline.prototype.drawEntitiesLabels = function() {
         heights[i].t2 = slice1[i].height;
     }
     var view = $('#storyline')[0].viewBox.baseVal;
-    for (var i = 0; i < 20; i++) {
-        $('#chip' + i).css('display', 'none');
-    }
+    //for (var i = 0; i < 20; i++) {
+    //    $('#chip' + i).css('display', 'none');
+    //}
+    var height_list = [];
     for (var i in heights) {
         var t1 = heights[i].t1;
         var t2 = heights[i].t2;
@@ -466,12 +474,48 @@ StreamingStoryline.prototype.drawEntitiesLabels = function() {
         var tmp = t1 + (t2 - t1) * s;
         tmp = (tmp - view.y) / view.height * that.svg_height;
         heights[i] = tmp;
-        $('#chip' + i).css('top', heights[i] - 16 + 'px');
-        $('#chip' + i).css('display', 'block');
-        $('#chip' + i).css('color', that.color(i));
-        $('#chip' + i).text(getEntityName(i));
+        height_list.push([i, heights[i]]);
+        //$('#chip' + i).css('top', heights[i] - 16 + 'px');
+        //$('#chip' + i).css('display', 'block');
+        //$('#chip' + i).css('color', that.color(i));
+        //$('#chip' + i).text(getEntityName(i));
     }
+    //if (_.size(heights) == 0) return;
+
     //console.log(heights);
+    var entity_names = that.entity_names_container.selectAll("div.chip");
+    entity_names = entity_names.data(height_list);
+    entity_names
+        .enter()
+        .append("div")
+        .attr("class", "chip");
+    entity_names.exit().remove();
+
+    //var height_min = that.height_min;
+    //var margin_top = that.margin_top;
+    //var valid_height = that.svg_height - that.margin_top - that.margin_bottom;
+    entity_names
+        //.transition()
+        //.duration(100)
+        .style("top", function (d) {
+            return d[1] - 16 + "px";
+            //var screen_height = (d[1] - height_min) / valid_height * (that.height_max - that.height_min) + margin_top;
+            //return screen_height + "px";
+        })
+        .style("display", "block")
+        .style("color", function (d) {
+            return that.color(d[0]);
+        })
+        //.style(function (d) {
+        //    return {
+        //        "top": d[1] - 16 + "px",
+        //        "display": "block",
+        //        "color": that.color(d[0])
+        //    }
+        //})
+        .text(function (d) {
+            return getEntityName(d[0]);
+        });
 };
 
 StreamingStoryline.prototype.scrollTo = function(start, end, speed, select_status) {
@@ -502,7 +546,10 @@ StreamingStoryline.prototype.scrollTo = function(start, end, speed, select_statu
         .attr("viewBox", that._get_viewBox());
 
     //console.log(view_end - view_start);
-    that.drawEntitiesLabels();
+    //that.drawEntitiesLabels();
+    setTimeout(function () {
+        that.drawEntitiesLabels.call(that);
+    }, 100);
 };
 
 StreamingStoryline.prototype.restoreNormalHeight = function() {
@@ -515,7 +562,7 @@ StreamingStoryline.prototype.restoreNormalHeight = function() {
     setTimeout(that.drawEntitiesLabels, 300);
 };
 
-// 杩斿洖褰撳墠鍙閮ㄥ垎瀵瑰簲鐨刴inimap鐨勪腑蹇冦?佸搴︾殑鍍忕礌鏁?
+// 返回当前可视部分对应的minimap的中心、宽度的像素数
 StreamingStoryline.prototype.getMinimapCenterWidth = function() {
     var that = this;
     var view = $('#storyline')[0].viewBox.baseVal;

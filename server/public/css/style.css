@@ -108,3 +108,7 @@ path.storyline {
     position: relative;
     width: 100%;
 }
+
+#dataset>.select-wrapper>span.caret {
+    top: 0px;
+}

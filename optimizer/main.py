@@ -23,6 +23,6 @@ def get_tasks():
 
 
 if __name__ == '__main__':
-    app.run(port=23334)
+    app.run(port=23334, host="0.0.0.0")
 
 
