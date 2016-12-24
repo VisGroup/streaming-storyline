@@ -25,12 +25,8 @@ var submit_optimizer_request = function (request) {
 
 var es;
 var start_loading = function(storyline) {
-// <<<<<<< HEAD
     load_started = true;
-    // es = new EventSource('/msg');
-// =======
     es = new EventSource('/msg?dataset=' + dataset_selector.val());
-// >>>>>>> master
 
     es.onmessage = function (e) {
         //console.log(e);

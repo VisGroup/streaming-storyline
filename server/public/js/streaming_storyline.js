@@ -12,7 +12,8 @@ function StreamingStoryline(container, config) {
     that.svg_height = config.svg_height;
     that.margin_top = 30;
     that.margin_bottom = 30;
-    that.height_max = 0;
+    that.height_min = that.svg_height;
+    that.height_max = - that.margin_top;
     //that.screen_time_range = [0, 0];
     that.has_stoped = false;
     that.straighten = null;
@@ -26,17 +27,23 @@ function StreamingStoryline(container, config) {
             //d.x += d3.event.dx;
             that.translate_x += d3.event.dx;
             //d.y += d3.event.dy;
-            that.svg.attr("transform", function(d, i) {
-                return "translate(" + [that.translate_x, 0] + ")"
+            that.svg
+                .transition()
+                .duration(300)
+                .attr("viewBox", function(d, i) {
+                // return "translate(" + [that.translate_x, 0] + ")"
+                    return that._get_viewBox.call(that);
             })
         });
 
+    that.entity_names_container = d3.select(container).append("div")
+        .attr("id", "chips");
     that.svg = d3.select(container).append("svg:svg")
         .attr("id", "storyline")
         .attr("height", that.svg_height)
         .attr("width", that.svg_width)
         .attr("preserveAspectRatio", "none")
-        .attr("viewBox", "0 " + (-that.margin_top) + " " + that.svg_width + " " + that.svg_height)
+        .attr("viewBox", that._get_viewBox())
         .call(drag);
 
     that.storyline_data = {
@@ -50,6 +57,18 @@ function StreamingStoryline(container, config) {
     that.color = d3.scale.category20();
     that.storylines = that.svg.append("svg:g").selectAll("path.storyline");
 }
+
+StreamingStoryline.prototype._get_viewBox_height = function () {
+    var that = this;
+    return Math.max(that.svg_height, that.height_max - that.height_min + that.margin_bottom + that.margin_top);
+};
+
+StreamingStoryline.prototype._get_viewBox = function () {
+    var that = this;
+    var viewBox_height = that._get_viewBox_height();
+    //console.log( - that.margin_top + that.height_min, viewBox_height, that.height_min, that.height_max);
+    return that.view_start + " " + (- that.margin_top + that.height_min) + " " + (that.view_end - that.view_start) + " " + (viewBox_height);
+};
 
 /*
 {
@@ -65,12 +84,17 @@ function StreamingStoryline(container, config) {
 
 StreamingStoryline.prototype._straighten_shift = function() {
     var that = this;
+    that.height_min = that.svg_height;
+    that.height_max = - that.margin_top;
     var straighten_shifts = that.storyline_data.straighten_shifts;
     for (var time in straighten_shifts) {
         var shift = straighten_shifts[time];
         var time_slice = that.storyline_data.time_slices[time];
         for (var entity in time_slice) {
             time_slice[entity].height += shift;
+            var h = time_slice[entity].height;
+            that.height_max = Math.max(that.height_max, h);
+            that.height_min = Math.min(that.height_min, h);
         }
         //// clear straighten shifts
         //straighten_shifts[time] = 0;
@@ -81,12 +105,17 @@ StreamingStoryline.prototype._straighten_shift = function() {
 
 StreamingStoryline.prototype._straighten_unshift = function() {
     var that = this;
+    that.height_min = that.svg_height;
+    that.height_max = - that.margin_top;
     var straighten_shifts = that.storyline_data.straighten_shifts;
     for (var time in straighten_shifts) {
         var shift = straighten_shifts[time];
         var time_slice = that.storyline_data.time_slices[time];
         for (var entity in time_slice) {
             time_slice[entity].height -= shift;
+            var h = time_slice[entity].height;
+            that.height_max = Math.max(that.height_max, h);
+            that.height_min = Math.min(that.height_min, h);
         }
         // clear straighten shifts
         straighten_shifts[time] = 0;
@@ -247,6 +276,7 @@ StreamingStoryline.prototype.update = function(new_data) {
         var session = new_data.sessions[i];
         _.each(session, function(v, k) {
             that.height_max = Math.max(that.height_max, v);
+            that.height_min = Math.min(that.height_min, v);
             // v = v * time_shrink_ratio;
             if (DEBUG_MODE) {
                 if (stats[k]) {
@@ -285,7 +315,7 @@ StreamingStoryline.prototype.update = function(new_data) {
             stats[k]++;
         });
     }
-    that.vertical_shrink_ratio = (that.svg_height - that.margin_bottom) / that.height_max;
+    // that.vertical_shrink_ratio = (that.svg_height - that.margin_bottom) / that.height_max;
     //console.log(that.vertical_shrink_ratio);
 
     //if (DEBUG_MODE) {
@@ -338,8 +368,8 @@ StreamingStoryline.prototype._draw_entity = function(history_points) {
         }
         var ap =
             //"M" + (prev.time) + "," + (prev.height) +
-            (line_break ? "M" : "C") + (prev.time + control_point_shift) + "," + (prev.height) + "," +
-            (p.time - control_point_shift) + "," + (p.height) + "," +
+            (line_break ? "M" : "C" + (prev.time + control_point_shift) + "," + (prev.height) + "," +
+            (p.time - control_point_shift) + "," + (p.height) + ",") +
             (p.time) + "," + (p.height);
         d += ap;
         if (line_break) line_break = false;
@@ -361,8 +391,6 @@ StreamingStoryline.prototype._draw = function() {
             return entity_name;
         })
         .attr("class", "storyline");
-    // .classed("storyline")
-    ;
     that.storylines.exit().remove();
 
     that.storylines
@@ -399,17 +427,20 @@ StreamingStoryline.prototype._draw = function() {
             that.straighten_by.call(that, d);
             Materialize.toast("Entity " + getEntityName(d) + " selected", 1000);
         });
-
+    that.svg.transition()
+        .duration(300)
+        .ease('linear')
+        .attr("viewBox", that._get_viewBox());
     this.drawEntitiesLabels();
-    drawMinimap();
-
+    //drawMinimap();
+    setTimeout(drawMinimap, 250);
 };
 
 // for Debug use
 StreamingStoryline.prototype.stop_loading = function() {
     var that = this;
     that.has_stoped = true;
-}
+};
 
 StreamingStoryline.prototype.drawEntitiesLabels = function() {
     var that = this;
@@ -431,9 +462,10 @@ StreamingStoryline.prototype.drawEntitiesLabels = function() {
         heights[i].t2 = slice1[i].height;
     }
     var view = $('#storyline')[0].viewBox.baseVal;
-    for (var i = 0; i < 20; i++) {
-        $('#chip' + i).css('display', 'none');
-    }
+    //for (var i = 0; i < 20; i++) {
+    //    $('#chip' + i).css('display', 'none');
+    //}
+    var height_list = [];
     for (var i in heights) {
         var t1 = heights[i].t1;
         var t2 = heights[i].t2;
@@ -442,13 +474,49 @@ StreamingStoryline.prototype.drawEntitiesLabels = function() {
         var tmp = t1 + (t2 - t1) * s;
         tmp = (tmp - view.y) / view.height * that.svg_height;
         heights[i] = tmp;
-        $('#chip' + i).css('top', heights[i] - 16 + 'px');
-        $('#chip' + i).css('display', 'block');
-        $('#chip' + i).css('color', that.color(i));
-        $('#chip' + i).text(getEntityName(i));
+        height_list.push([i, heights[i]]);
+        //$('#chip' + i).css('top', heights[i] - 16 + 'px');
+        //$('#chip' + i).css('display', 'block');
+        //$('#chip' + i).css('color', that.color(i));
+        //$('#chip' + i).text(getEntityName(i));
     }
-    console.log(heights);
-}
+    //if (_.size(heights) == 0) return;
+
+    //console.log(heights);
+    var entity_names = that.entity_names_container.selectAll("div.chip");
+    entity_names = entity_names.data(height_list);
+    entity_names
+        .enter()
+        .append("div")
+        .attr("class", "chip");
+    entity_names.exit().remove();
+
+    //var height_min = that.height_min;
+    //var margin_top = that.margin_top;
+    //var valid_height = that.svg_height - that.margin_top - that.margin_bottom;
+    entity_names
+        //.transition()
+        //.duration(100)
+        .style("top", function (d) {
+            return d[1] - 16 + "px";
+            //var screen_height = (d[1] - height_min) / valid_height * (that.height_max - that.height_min) + margin_top;
+            //return screen_height + "px";
+        })
+        .style("display", "block")
+        .style("color", function (d) {
+            return that.color(d[0]);
+        })
+        //.style(function (d) {
+        //    return {
+        //        "top": d[1] - 16 + "px",
+        //        "display": "block",
+        //        "color": that.color(d[0])
+        //    }
+        //})
+        .text(function (d) {
+            return getEntityName(d[0]);
+        });
+};
 
 StreamingStoryline.prototype.scrollTo = function(start, end, speed, select_status) {
     var that = this;
@@ -470,20 +538,18 @@ StreamingStoryline.prototype.scrollTo = function(start, end, speed, select_statu
         speed = Math.pow(speed / 10, 0.5);
     }
 
-    var h1, h2;
-    h1 = -that.svg_height * speed / 2;
-    h2 = that.svg_height * (1 + speed);
+    // var h1, h2;
+    // h1 = -that.svg_height * speed / 2;
+    // h2 = that.svg_height * (1 + speed);
     that.svg.transition()
-        // <<<<<<< HEAD
         .duration(select_status ? 80 : 1000)
-        .attr("viewBox", that.view_start + " " + h1 + " " + (that.view_end - that.view_start) + " " + h2);
-    // =======
-    // .duration(select_status ? 10 : 1000)
-    // .attr("viewBox", view_start + " " + (-that.margin_top) + " " + (view_end - view_start) + " " + that.svg_height);
-    // >>>>>>> master
+        .attr("viewBox", that._get_viewBox());
 
     //console.log(view_end - view_start);
-    that.drawEntitiesLabels();
+    //that.drawEntitiesLabels();
+    setTimeout(function () {
+        that.drawEntitiesLabels.call(that);
+    }, 100);
 };
 
 StreamingStoryline.prototype.restoreNormalHeight = function() {
@@ -492,11 +558,11 @@ StreamingStoryline.prototype.restoreNormalHeight = function() {
     that.svg.transition()
         .duration(300)
         .ease('linear')
-        .attr("viewBox", view.x + " " + 0 + " " + view.width + " " + that.svg_height);
+        .attr("viewBox", that._get_viewBox());
     setTimeout(that.drawEntitiesLabels, 300);
-}
+};
 
-// ËøîÂõûÂΩìÂâçÂèØËßÜÈÉ®ÂàÜÂØπÂ∫îÁöÑminimapÁöÑ‰∏≠ÂøÉ„ÄÅÂÆΩÂ∫¶ÁöÑÂÉèÁ¥†Êï∞
+// ∑µªÿµ±«∞ø… ”≤ø∑÷∂‘”¶µƒminimapµƒ÷––ƒ°¢øÌ∂»µƒœÒÀÿ ˝
 StreamingStoryline.prototype.getMinimapCenterWidth = function() {
     var that = this;
     var view = $('#storyline')[0].viewBox.baseVal;
@@ -507,4 +573,4 @@ StreamingStoryline.prototype.getMinimapCenterWidth = function() {
     var start = (view_start - data_time_range[0]) / data_time_length;
     var end = (view_end - data_time_range[0]) / data_time_length;
     return [(end + start) / 2, end - start];
-}
+};
