@@ -177,7 +177,7 @@ function getMsg(req, res) {
             res.write("data:" + response + "\n\n");
             //console.log("response\t" + response + "\n\n");
             preslice = response;
-            setTimeout(timer, 20);
+            setTimeout(timer, 150);
         });
     });
 

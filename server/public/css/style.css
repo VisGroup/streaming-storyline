@@ -69,9 +69,9 @@ green {
     top: -300%;
 }
 .mm_select_box.mm_orange {
-    border-left: 3px solid salmon;
-    border-right: 3px solid salmon;
-    background-color: lightsalmon;
+    border-left: 3px solid #4db6ac;
+    border-right: 3px solid #4db6ac;
+    background-color: #b2dfdb;
     top: -200%;
 }
 #mm_canvas_container {
@@ -82,9 +82,9 @@ green {
     height: 100%;
 }
 .mm_select_box.mm_gray {
-    border-left: 3px solid gray;
-    border-right: 3px solid gray;
-    background-color: lightgray;
+    border-left: 3px solid #e0e0e0;
+    border-right: 3px solid #e0e0e0;
+    background-color: #f5f5f5;
     top: -100%;
 }
 path.storyline {
@@ -108,7 +108,11 @@ path.storyline {
     position: relative;
     width: 100%;
 }
-
+/*
 #dataset>.select-wrapper>span.caret {
     top: 0px;
+}*/
+.card-panel {
+    padding-left: 50px;
+    padding-right: 50px;
 }
