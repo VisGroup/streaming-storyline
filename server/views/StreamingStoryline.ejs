@@ -15,7 +15,7 @@
 <body>
     <div class="navbar-fixed">
         <nav class="teal">
-            <div class="nav-wrapper container row">
+            <div class="nav-wrapper container row" style="width:85%">
                 <!-- logo -->
                 <a class="brand-logo">
                     <!-- <h2> -->
@@ -23,25 +23,22 @@
                     <!-- </h2> -->
                 </a>
                 <!-- 顶部navbar右侧的按钮     -->
-                <i id="replay" class="right hide-on-med-and-down material-icons">replay</i>
-                <i id="stop" class="right hide-on-med-and-down material-icons">stop</i>
-                <i id="play" class="right hide-on-med-and-down material-icons">play_circle_outline</i>
-                <div id="dataset" class="right input-field col s2">
-                    <select id="dataset-selector">
-                        <!--<option value="Inception" disabled selected>Datasets</option>-->
-                        <option value="Inception" selected>Inception</option>
-                        <option value="StarWars">Star Wars</option>
-                        <option value="TheMatrix">The Matrix</option>
-                    </select>
-                </div>
+                <ul id="nav-mobile" class="right hide-on-med-and-down">
+                    <li><a href="">Xiao Jiannan</a></li>
+                    <li><a href="">Ren Qian</a></li>
+                    <li><a href="">Zhou Bowei</a></li>
+                </ul>
             </div>
         </nav>
     </div>
     <main class="container" style="width:85%">
+        <div class="row"></div>
         <!-- storyline -->
-        <div class="row">
+
+        <!-- minimap -->
+        <div class="row card-panel">
             <div class="col s12">
-                <div class="card-panel">
+                <div class="">
                     <div style="height:300px;">
                         <!--storyline here-->
                         <defs>
@@ -51,27 +48,36 @@
                         <feBlend in="SourceGraphic" in2="blurOut" mode="normal" />
                         </filter>
                         </defs>
+
                         <div id="streaming-storyline">
-                            <!--<div class="chip" id="chip0">0</div>-->
-                            <!--<div class="chip" id="chip1">1</div>-->
-                            <!--<div class="chip" id="chip2">2</div>-->
-                            <!--<div class="chip" id="chip3">3</div>-->
-                            <!--<div class="chip" id="chip4">4</div>-->
-                            <!--<div class="chip" id="chip5">5</div>-->
-                            <!--<div class="chip" id="chip6">6</div>-->
-                            <!--<div class="chip" id="chip7">7</div>-->
-                            <!--<div class="chip" id="chip8">8</div>-->
-                            <!--<div class="chip" id="chip9">9</div>-->
                         </div>
 
                     </div>
                 </div>
             </div>
-        </div>
-        <!-- minimap -->
-        <div class="row">
+
+            <div class="col s6 offset-s3">
+                <div class="row">
+                    <div class="col s8">
+                        <div id="dataset" class="input-field">
+                            <select id="dataset-selector">
+                                <!--<option value="Inception" disabled selected>Datasets</option>-->
+                                <option value="Inception" selected>Inception</option>
+                                <option value="StarWars">Star Wars</option>
+                                <option value="TheMatrix">The Matrix</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col s4" style="padding-top:36px;">
+                        <i id="replay" class="material-icons">replay</i>
+                        <i id="stop" class="material-icons">stop</i>
+                        <i id="play" class="material-icons">play_circle_outline</i>
+                    </div>
+                </div>
+            </div>
+
             <div class="col s12">
-                <div class="card-panel">
+                <div class="">
                     <div style="height:100px;">
                         <!--<a id="loading-start" class="btn"></a>-->
                         <div id="mm_area">

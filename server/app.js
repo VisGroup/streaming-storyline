@@ -180,8 +180,13 @@ function getMsg(req, res) {
             response = response.replace(/[ \t\n\r]+/g, '');
             res.write("data:" + response + "\n\n");
             //console.log("response\t" + response + "\n\n");
+///<<<<<<< zhoubowei
+   //         preslice = response;
+  //          setTimeout(timer, 150);
+//=======
             preslice_heights = response;
-            setTimeout(timer, 20);
+            setTimeout(timer, 150);
+//>>>>>>> master
         });
         preslots = current_slots;
     });
