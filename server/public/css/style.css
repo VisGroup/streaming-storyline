@@ -116,3 +116,7 @@ path.storyline {
     padding-left: 50px;
     padding-right: 50px;
 }
+
+path.selected {
+    stroke-width: 9px !important;
+}

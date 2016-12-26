@@ -40,6 +40,15 @@
             <div class="col s12">
                 <div class="">
                     <div style="height:300px;">
+                        <!--storyline here-->
+                        <defs>
+                        <filter id="filter1" x="0" y="0">
+                        <feOffset result="offOut" in="SourceAlpha" dx="-5" dy="-5" />
+                        <feGaussianBlur result="blurOut" in="offOut" stdDeviation="3" />
+                        <feBlend in="SourceGraphic" in2="blurOut" mode="normal" />
+                        </filter>
+                        </defs>
+
                         <div id="streaming-storyline">
                         </div>
 

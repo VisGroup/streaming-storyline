@@ -5,7 +5,8 @@ function StreamingStoryline(container, config) {
 
     that.time_shrink_ratio = 1;
     that.vertical_shrink_ratio = 1;
-    that.timeslice_space_min = 100;
+    that.timeslice_space_min = 20;
+    that.control_point_shift = that.timeslice_space_min * 0.4;
     that.realtime2screentime = {};
     that.latest_time = -that.timeslice_space_min - 1;
     that.svg_width = $(container).width();
@@ -17,6 +18,10 @@ function StreamingStoryline(container, config) {
     //that.screen_time_range = [0, 0];
     that.has_stoped = false;
     that.straighten = null;
+    that.fisheye_distortion_factor = 3;
+    that.last_update_time = Date.now();
+    that.fps_max = 10;
+    that.frame_min_space = 1000 / that.fps_max;
 
     that.view_start = 0;
     that.view_end = that.svg_width;
@@ -152,15 +157,18 @@ StreamingStoryline.prototype.straighten_by = function(d) {
 
     if (that.straighten == null) {
         that.straighten = d;
+        d3.select("#entity-" + d).classed("selected", true);
     } else {
+        d3.select("#entity-" + that.straighten).classed("selected", false);
         if (that.straighten != d) {
+            d3.select("#entity-" + d).classed("selected", true);
             that.straighten = d;
         } else {
             that.straighten = null;
         }
     }
 
-    that._draw();
+    that._draw(true);
 
 };
 
@@ -192,19 +200,13 @@ StreamingStoryline.prototype.update = function(new_data) {
     if (time - that.latest_time <= that.timeslice_space_min) {
         var screen_time = that.latest_time + that.timeslice_space_min;
         that.realtime2screentime[time] = screen_time;
-        //console.log(that.latest_time, time, screen_time);
         time = screen_time;
     }
     that.latest_time = time;
     var time_slice = {};
 
     new_data.entities = this._get_entities(new_data);
-    // var time_shrink_ratio = this.time_shrink_ratio;
     var _data = this.storyline_data;
-
-    // if (DEBUG_MODE) {
-    //     //time *= 200;
-    // }
 
     // extend straighten shifts
     if (that.straighten == null) {
@@ -222,112 +224,59 @@ StreamingStoryline.prototype.update = function(new_data) {
 
     // create new entity lines that never ever exists
     for (var entity in new_data.entities) {
-        // var entity = new_data.entities[i];
-        //console.log(entity);
         if (!_.has(_data.entities, entity)) {
             _data.entities[entity] = [];
-            // that.entity_set.add(entity);
-        }
-    }
-
-    //if (DEBUG_MODE) {
-    //    var lengths = [];
-    //    for (var entity in _data.entities) {
-    //        lengths.push(_data.entities[entity].length);
-    //    }
-    //    console.log("before", lengths.join(" "));
-    //}
-
-    //// extend old entity lines not mentioned in new time slice
-    //for (var entity in _data.entities) {
-    //    var history_points = _data.entities[entity];
-    //    if (!_.has(new_data.entities, entity)) {
-    //        var prev_point = history_points[history_points.length - 1];
-    //        var nn = {
-    //            "time": time,
-    //            "height": prev_point.height
-    //        };
-    //        time_slice[entity] = nn;
-    //        history_points.push(nn);
-    //    }
-    //}
-
-    //if (DEBUG_MODE) {
-    //    var lengths = [];
-    //    for (var entity in _data.entities) {
-    //        lengths.push(_data.entities[entity].length);
-    //    }
-    //    console.log("middle", lengths.join(" "));
-    //    console.log(_.keys(_data.entities));
-    //    console.log(new_data.entities);
-    //}
-
-    var stats = {};
-    if (DEBUG_MODE) {
-        for (var entity in new_data.entities) {
-            stats[entity] = 0;
         }
     }
 
     // incorporate new data into old data series
-    //console.log(new_data);
-    //var height_max = 0;
     for (var i = 0; i < new_data.sessions.length; i++) {
         var session = new_data.sessions[i];
         _.each(session, function(v, k) {
             that.height_max = Math.max(that.height_max, v);
             that.height_min = Math.min(that.height_min, v);
-            // v = v * time_shrink_ratio;
-            if (DEBUG_MODE) {
-                if (stats[k]) {
-                    return;
-                }
-            }
+
             var history_points = _data.entities[k];
             if (history_points.length == 0) {
-                if (DEBUG_MODE && Random_Layout) {
-                    v = Math.random() * that.svg_height;
-                }
                 // the entity is newly added
                 var nn = {
                     "time": time,
                     "height": v
                 };
-                history_points.push(nn);
-                time_slice[k] = nn;
-            } else {
-                var prev_point = history_points.pop();
-                if (DEBUG_MODE && Random_Layout) {
-                    if (Math.random() < 0.65) {
-                        v = prev_point.height;
-                    } else {
-                        v = Math.random() * that.svg_height;
-                    }
-                }
-                history_points.push(prev_point);
-                var nn = {
+                var nnn = {
                     "time": time,
                     "height": v
                 };
-                time_slice[k] = nn;
                 history_points.push(nn);
+                history_points.push(nnn);
+                time_slice[k] = nn;
+                //time_slice[k + that.timeslice_space_min] = nnn;
+            } else {
+                var point = history_points.pop();
+                if (history_points.length == 1) {
+                    var first_point = history_points[0];
+                    first_point.height = v;
+                }
+                point.time = time;
+                point.height = v;
+                history_points.push(point);
+                var nnn = {
+                    "time": time,
+                    "height": v
+                };
+                history_points.push(nnn);
+                time_slice[k] = point;
+                //var prev_point = history_points.pop();
+                //history_points.push(prev_point);
+                //var nn = {
+                //    "time": time,
+                //    "height": v
+                //};
+                //time_slice[k] = nn;
+                //history_points.push(nn);
             }
-            stats[k]++;
         });
     }
-    // that.vertical_shrink_ratio = (that.svg_height - that.margin_bottom) / that.height_max;
-    //console.log(that.vertical_shrink_ratio);
-
-    //if (DEBUG_MODE) {
-    //    console.log(stats);
-    //}
-    //if (DEBUG_MODE) {
-    //    var lengths = [];
-    //    for (var entity in _data.entities) {
-    //        lengths.push(_data.entities[entity].length);
-    //    }
-    //    console.log("after", lengths.join(" "));
-    //}
     that.storyline_data.time_slices[time] = time_slice;
     this._draw();
     if (!mousein_status) {
@@ -344,6 +293,19 @@ StreamingStoryline.prototype._map2screen = function(p) {
     };
 };
 
+//StreamingStoryline.prototype._fisheye_distortion = function () {
+//
+//};
+
+var fisheye_distortion = function (center, p, r, alpha) {
+    var d = Math.abs(p - center) / r * alpha;
+    var norm = Math.exp(alpha) - 1;
+    var indicator = center > p ? -1 : 1;
+    //return center + r * d * (1 + 0.5 * d * (1 + d * 0.33));
+    //return center + r * d * (1 + 0.5 * d);
+    return center + r * (Math.exp(d) - 1) * indicator / norm;
+};
+
 StreamingStoryline.prototype._draw_entity = function(history_points) {
     var sr = this.time_shrink_ratio;
     //var vtr = this.view_time_range; // [start, end]
@@ -351,34 +313,62 @@ StreamingStoryline.prototype._draw_entity = function(history_points) {
     if (point_count <= 0) {
         return "";
     }
-    var start = this._map2screen(history_points[0]);
+
+    var that = this;
+    // find the first
+    var i = 0;
+    //for (; i < point_count; i ++) {
+    //    if (history_points[i].time >= that.view_start) break;
+    //}
+    var focus_center = (that.view_start + that.view_end) / 2;
+    var focus_radius = (that.view_end - that.view_start) / 2 * 10;
+    var focus_start = focus_center - focus_radius;
+    var focus_end = focus_center + focus_radius;
+    var start = history_points[i];
     var d = "M" + start.time + "," + start.height;
-    var control_point_shift = 40;
+    var control_point_shift = that.control_point_shift;
+
+    // skip virtual point
+    point_count --;
+
     if (point_count == 1) {
         return d + "L" + (start.time + control_point_shift) + "," + start.height;
     }
     //d = "M" + (prev.time) + "," + (prev.height);
     var line_break = false;
-    for (var i = 1; i < point_count; i++) {
-        var prev = history_points[i - 1];
+    var pt = history_points[i].time;
+    var ph = history_points[i].height;
+    for (i ++ ; i < point_count; i++) {
+        //if (history_points[i].time > that.view_end + 100) break;
         var p = history_points[i];
-        if (p.time - prev.time > 100) {
+        if (p.time - pt > that.timeslice_space_min) {
             line_break = true;
             continue;
         }
+        var ct = p.time;
+        var current_shift = control_point_shift;
+
+        if (FISHEYE && that.fisheye_distortion_factor != 1 && pt >= focus_start && ct < focus_end) {
+            pt = fisheye_distortion(focus_center, pt, focus_radius, that.fisheye_distortion_factor);
+            ct = fisheye_distortion(focus_center, ct, focus_radius, that.fisheye_distortion_factor);
+            current_shift = fisheye_distortion(0, control_point_shift, focus_radius, that.fisheye_distortion_factor);
+        }
+
         var ap =
             //"M" + (prev.time) + "," + (prev.height) +
-            (line_break ? "M" : "C" + (prev.time + control_point_shift) + "," + (prev.height) + "," +
-            (p.time - control_point_shift) + "," + (p.height) + ",") +
-            (p.time) + "," + (p.height);
+            (line_break ? "M" : "C" + (pt + current_shift) + "," + (ph) + "," +
+            (ct - current_shift) + "," + (p.height) + ",") +
+            (ct) + "," + (p.height);
         d += ap;
         if (line_break) line_break = false;
+        pt = ct;
+        ph = p.height;
     }
     // console.log(d);
     return d;
 };
 
-StreamingStoryline.prototype._draw = function() {
+StreamingStoryline.prototype._draw = function(animation) {
     var that = this;
     var entities_list = [];
     _.each(that.storyline_data.entities, function(v, k) {
@@ -393,19 +383,33 @@ StreamingStoryline.prototype._draw = function() {
         .attr("class", "storyline");
     that.storylines.exit().remove();
 
-    that.storylines
-        .attr("id", function(entity_name) {
-            return "entity-" + entity_name;
-        })
-        .transition()
-        .duration(500)
-        .attr("d", function(entity_name) {
-            var hps = that.storyline_data.entities[entity_name];
-            return that._draw_entity.call(that, hps);
-        })
-        .style("stroke", function(entity_name) {
-            return that.color(entity_name);
-        });
+    if (animation) {
+        that.storylines
+            .attr("id", function(entity_name) {
+                return "entity-" + entity_name;
+            })
+            .transition()
+            .duration(500)
+            .attr("d", function(entity_name) {
+                var hps = that.storyline_data.entities[entity_name];
+                return that._draw_entity.call(that, hps);
+            })
+            .style("stroke", function(entity_name) {
+                return that.color(entity_name);
+            });
+    } else {
+        that.storylines
+            .attr("id", function(entity_name) {
+                return "entity-" + entity_name;
+            })
+            .attr("d", function(entity_name) {
+                var hps = that.storyline_data.entities[entity_name];
+                return that._draw_entity.call(that, hps);
+            })
+            .style("stroke", function(entity_name) {
+                return that.color(entity_name);
+            });
+    }
     that.storylines
         // .each(function (entity_name) {
         //     d3.select("#entity-" + entity_name).call(cc);
@@ -449,11 +453,11 @@ StreamingStoryline.prototype.drawEntitiesLabels = function() {
     var that = this;
     // console.log("that.view_start", that.view_start);
     var t = that.view_start;
-    var time = Math.floor(t / 100) * 100;
-    var s = (t - time) / 100;
+    var time = Math.floor(t / that.timeslice_space_min ) * that.timeslice_space_min ;
+    var s = (t - time) / that.timeslice_space_min ;
     var slices = storyline.storyline_data.time_slices;
     var slice0 = slices[time];
-    var slice1 = slices[time + 100];
+    var slice1 = slices[time + that.timeslice_space_min ];
     if (slice1 == undefined) slice1 = slice0;
     var heights = {};
     for (var i in slice0) {
@@ -523,6 +527,11 @@ StreamingStoryline.prototype.drawEntitiesLabels = function() {
 
 StreamingStoryline.prototype.scrollTo = function(start, end, speed, select_status) {
     var that = this;
+    var current_time = Date.now();
+    if (current_time - that.last_update_time < that.frame_min_space) {
+        return;
+    }
+    that.last_update_time = current_time;
     var data_time_range = that.storyline_data.range;
     var data_time_length = data_time_range[1] - data_time_range[0];
     if (data_time_length <= that.svg_width) {
@@ -534,6 +543,7 @@ StreamingStoryline.prototype.scrollTo = function(start, end, speed, select_statu
     // speed = Math.sqrt(Math.abs(speed / 3));
     // speed -= 1;
     // speed = Math.max(0, speed);
+
     speed = Math.abs(speed);
     if (speed < 10) {
         speed = Math.pow(speed / 10, 2);
@@ -541,12 +551,15 @@ StreamingStoryline.prototype.scrollTo = function(start, end, speed, select_statu
         speed = Math.pow(speed / 10, 0.5);
     }
 
+    that.fisheye_distortion_factor = Math.exp(speed);
+
     // var h1, h2;
     // h1 = -that.svg_height * speed / 2;
     // h2 = that.svg_height * (1 + speed);
     that.svg.transition()
         .duration(select_status ? 80 : 1000)
         .attr("viewBox", that._get_viewBox());
+    that._draw(!select_status);
 
     //console.log(view_end - view_start);
     //that.drawEntitiesLabels();

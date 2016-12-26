@@ -194,7 +194,13 @@ function drawMinimap() {
         ctx.strokeStyle = storyline.color(j);
         var entity = es[j];
 
+        var entity_length = entity.length;
+
         entity.forEach(function(e, i) {
+            // skip virtual point
+            if (i == entity_length - 1) {
+                return;
+            }
             var x = e.time / range * canvas_width;
             var y = (e.height - minh) / (maxh - minh) * canvas_height;
             if (oldx != undefined && oldy != undefined) {
