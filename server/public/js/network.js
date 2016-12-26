@@ -35,7 +35,7 @@ var start_loading = function(storyline) {
             return;
         }
         var slice;
-        console.log("slice=" + e.data);
+//        console.log("slice=" + e.data);
         eval("slice=" + e.data);
         //console.log(slice.time);
         storyline.update(slice);
