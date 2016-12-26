@@ -158,15 +158,19 @@ function getMsg(req, res) {
     var child_executable = platform == "win32" ? "Debug/StreamingStoryline.exe" : "gintama";
     //var optimizer_executable = "python ../optimizer/main.py";
     var child = spawn('storyline-layout/' + child_executable);
-    var preslice = "{}";
+    var preslots = "{}";
+    var preslice_heights = "{}";
     child.stdout.on('data', function(data) {
         //console.log("1", data.toString());
         if (data == "\r\n") {
             return;
         }
+        // find fixed entities
+        var current_slots = data.toString();
         var req = {
-            "preslice": preslice,
-            "current": data.toString()
+            "preslots": preslots,
+            "preslice": preslice_heights,
+            "current": current_slots
         };
         submit_get_request("http://166.111.81.52:23334/tasks/optimizer", req, function (response) {
             //eval("response=" + response);
@@ -176,9 +180,10 @@ function getMsg(req, res) {
             response = response.replace(/[ \t\n\r]+/g, '');
             res.write("data:" + response + "\n\n");
             //console.log("response\t" + response + "\n\n");
-            preslice = response;
+            preslice_heights = response;
             setTimeout(timer, 20);
         });
+        preslots = current_slots;
     });
 
     var timer = function() {

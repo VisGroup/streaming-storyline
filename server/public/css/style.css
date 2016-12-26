@@ -112,3 +112,7 @@ path.storyline {
 #dataset>.select-wrapper>span.caret {
     top: 0px;
 }
+
+path.selected {
+    stroke-width: 9px !important;
+}

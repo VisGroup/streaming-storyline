@@ -1,22 +1,35 @@
 import mosek
 from numpy import array, zeros, ones
 import operator
+import sys
 
 
 INF = 0.
 env = mosek.Env()
+DEBUG = False
 
 
-def optimize(Q, c, A, b, numvar, numcon, objsense):
+def streamprinter(text):
+    sys.stdout.write(text)
+    sys.stdout.flush()
+
+
+def optimize(Q, c, A, b, bounds, numvar, numcon, objsense):
+	if DEBUG:
+		env.set_Stream(mosek.streamtype.log, streamprinter)
 	task = env.Task()
+	if DEBUG:
+		task.set_Stream(mosek.streamtype.log, streamprinter)
 	task.appendvars(numvar)
 	task.appendcons(numcon)
 
+
 	# variable non-negative
+	bound_keys, bound_lower, bound_upper = bounds
 	for j in range(numvar):
 		# Set the bounds on variable j
 		# blx[j] <= x_j <= bux[j]
-		task.putbound(mosek.accmode.var, j, mosek.boundkey.lo, 0.0, INF)
+		task.putbound(mosek.accmode.var, bound_keys[j], mosek.boundkey.lo, bound_lower[j], bound_upper[j])
 
 	asub, aval = A
 	for i in range(numcon):
@@ -53,18 +66,17 @@ def optimize(Q, c, A, b, numvar, numcon, objsense):
 		return solsta
 
 
-def compaction(current, preslice, config, alpha=1):
+def compaction(current, preslice, fixed_slots, config, alpha=1):
 	has_precendent = "time" in preslice
 	current_order, current_session = convert_format(current)
 	if has_precendent:
 		preslice_order, preslice_session = convert_format(preslice)
 
-		HEIGHT_MIN = 10
 		# get preslice height map
 		preslice_height_map = {}
 		for session in preslice["sessions"]:
 			for entity in session:
-				preslice_height_map[entity] = session[entity] + HEIGHT_MIN
+				preslice_height_map[entity] = session[entity]
 
 	numvar = len(current_order)
 	numcon = numvar - 1
@@ -80,6 +92,7 @@ def compaction(current, preslice, config, alpha=1):
 		qval.append(alpha)
 		c.append(0.)
 
+	HEIGHT_MIN = 10
 	if has_precendent:
 		for i in range(numvar):
 			for j in range(numvar):
@@ -94,18 +107,19 @@ def compaction(current, preslice, config, alpha=1):
 					qval[j] += 1.
 					qsubi.append(i)
 					qsubj.append(j)
-					qval.append(-1.)
+					qval.append(-4.)
 				else:
-					ratio = preslice_height_map[i] / preslice_height_map[j]
+					ratio = (preslice_height_map[i] + HEIGHT_MIN) / (preslice_height_map[j] + HEIGHT_MIN)
+					qsubi.append(i)
+					qsubj.append(j)
 					if ratio < 1.:
 						qval[i] += 1 / ratio
 						qval[j] += 1.
+						qval.append(- 1 / ratio * 4)
 					else:
 						qval[i] += 1.
 						qval[j] += ratio
-					qsubi.append(i)
-					qsubj.append(j)
-					qval.append(ratio)
+						qval.append(- ratio * 4)
 
 	# construction of A
 	asub = []
@@ -126,7 +140,22 @@ def compaction(current, preslice, config, alpha=1):
 			buc.append(config["d-in"])
 		aval.append(array([-1., 1.]))
 	objsense = mosek.objsense.minimize
-	res = optimize((qsubi, qsubj, qval), c, (asub, aval), (bkc, blc, buc), numvar, numcon, objsense)
+
+	bound_keys = []
+	bound_lower = []
+	bound_upper = []
+	for i in range(numvar):
+		bound_keys.append(i)
+		if current_order[i] in fixed_slots:
+			pre_height = preslice_height_map[current_order[i]]
+			bound_lower.append(pre_height)
+			bound_upper.append(pre_height + 1)
+			print(current_order[i], pre_height)
+		else:
+			bound_lower.append(0.)
+			bound_upper.append(INF)
+
+	res = optimize((qsubi, qsubj, qval), c, (asub, aval), (bkc, blc, buc), (bound_keys, bound_lower, bound_upper), numvar, numcon, objsense)
 	# print(res)
 	entity_heights = {}
 	for i, entity in enumerate(current_order):
@@ -156,23 +185,41 @@ def convert_format(slice):
 	return (order, session_map)
 
 
-def test(l_c, l_p):
+def test():
 	import json
 	from config import CONFIG
 	# c = '{"time":5,"sessions":[{"0": 0},{"1": 2,"2": 3},{"3": 5},{"4": 7},{"5": 9},{"6": 11,"7": 12},{"8": 14}]}'
 	# p = '{  "sessions": [    {      "0": 0    },     {      "1": 2,       "2": 3    },     {      "3": 5    },     {      "4": 7    },     {      "5": 9    },     {      "6": 11,       "7": 12    },     {      "8": 14    }  ],   "time": 4}'
-	current = json.loads(l_c)
-	preslice = json.loads(l_p)
-
-	compaction(current, preslice, CONFIG)
+	pp 			= {"time": 159, "sessions": [{"0": 11}, {"5": 13,"11": 14}, {"1": 18,"2": 19,"3": 20,"6": 21,"7": 23,"10": 24}]}
+	preslice 	= {"time": 160, "sessions": [{"0": 11}, {"5": 13, "11": 14}, {"1": 18, "2": 19, "3": 20, "6": 21, "7": 23, "10": 24}]}
+	current 	= {"time": 161, "sessions": [{"0": 11}, {"5": 13}, {"1": 18, "2": 19, "3": 20, "6": 21, "7": 23, "10": 24}]}
+	result = compaction(preslice, pp, {}, CONFIG)
+	# current = json.loads(l_c)
+	# preslice = json.loads(l_p)
+	r1 = compaction(current, result, {
+		"0": 11,
+		"5": 13,
+		"1": 18,
+		"2": 19,
+		"3": 20,
+		"6": 21,
+		"7": 23,
+		"10": 24
+	}, CONFIG)
+	print(result)
+	print(r1)
+	return r1
 
 
 if __name__ == '__main__':
-	with open("data.txt") as infile:
-		lines = []
-		for line in infile:
-			lines.append(line)
-
-		print(len(lines))
-		for i in range(int(len(lines) / 2)):
-			test(lines[i], lines[i + 1])
+	DEBUG = False
+	r = test()
+	# print(r)
+	# with open("data.txt") as infile:
+	# 	lines = []
+	# 	for line in infile:
+	# 		lines.append(line)
+    #
+	# 	print(len(lines))
+	# 	for i in range(int(len(lines) / 2)):
+	# 		test(lines[i], lines[i + 1])
